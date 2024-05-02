@@ -6,7 +6,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "update-gallery": "tsx util/updateStartersData.ts",
     "update-readme": "tsx util/updateReadme.ts ./",
     "update-readme-submodule": "tsx util/updateReadme.ts"
   },

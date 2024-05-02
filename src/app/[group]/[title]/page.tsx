@@ -1,5 +1,8 @@
-import _starters from "../../../starters.json";
-import type { GroupLookup, Starter } from "../../../../util/parseStarters";
+import {
+  parseStarters,
+  type GroupLookup,
+  type Starter,
+} from "../../../../util/parseStarters";
 import * as path from "path";
 import { readFileSync, readdirSync, statSync } from "fs";
 import CopyableCommand from "../../CopyableCommand";
@@ -26,22 +29,15 @@ export default async function Starter({ params }: { params: Params }) {
           command={`npx degit kevinschaul/jump-start/${starter.dir} ${starter.defaultDir || starter.dir}`}
         />
 
-        <a href={`https://www.github.com/kevinschaul/jump-start/tree/main/${params.group}/${params.title}`}>View on GitHub</a>
+        <a
+          href={`https://www.github.com/kevinschaul/jump-start/tree/main/${params.group}/${params.title}`}
+        >
+          View on GitHub
+        </a>
 
         {starter.description?.split("\n").map((d, i) => {
           return <p key={i}>{d}</p>;
         })}
-
-        {/* {starter.tags?.length && ( */}
-        {/*   <div> */}
-        {/*     Tags:{" "} */}
-        {/*     {starter.tags.map((d) => ( */}
-        {/*       <a className="tag" key={d} href={`/tag/${d}/`}> */}
-        {/*         {d} */}
-        {/*       </a> */}
-        {/*     ))} */}
-        {/*   </div> */}
-        {/* )} */}
 
         <hr />
 
@@ -61,17 +57,18 @@ async function getStarter(
   group: string,
   title: string,
 ): Promise<Starter | undefined> {
-  const starters: GroupLookup = _starters;
+  const starters = parseStarters(path.join(process.cwd(), "./src/starters/"));
   return starters[group].find((d) => d.title === title);
 }
 
 async function getStarterFiles(dirPath: string) {
-  const files = readdirSync(dirPath);
+  const basePath = path.join(process.cwd(), "./src/starters/");
+  const files = readdirSync(path.join(basePath, dirPath));
   let out = [];
 
   for (const file of files) {
     if (!["jump-start.yaml", "degit.json"].includes(file)) {
-      const filePath = path.join(dirPath, file);
+      const filePath = path.join(basePath, dirPath, file);
       const stats = statSync(filePath);
       if (stats.isDirectory()) {
         out.push({
@@ -92,7 +89,7 @@ async function getStarterFiles(dirPath: string) {
 }
 
 export async function generateStaticParams() {
-  const starters: GroupLookup = _starters;
+  const starters = parseStarters(path.join(process.cwd(), "./src/starters/"));
 
   let combinations: Params[] = [];
   for (const key of Object.keys(starters)) {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import path from "path";
 import "./globals.css";
-import _starters from "../starters.json";
-import { GroupLookup } from "../../util/parseStarters";
+import { parseStarters } from "../../util/parseStarters";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -14,7 +14,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const starters: GroupLookup = _starters;
+  const starters = parseStarters(path.join(process.cwd(), "./src/starters/"));
 
   return (
     <html lang="en">

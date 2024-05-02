@@ -35,3 +35,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# symlink to the starters when this repo is a submodule of a
+# jump-start repo
+src/starters

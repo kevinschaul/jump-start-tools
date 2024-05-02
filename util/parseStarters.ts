@@ -21,7 +21,12 @@ export function parseStarters(dirPath: string): GroupLookup {
   const groups: GroupLookup = {};
 
   const filePattern = path.join("./**", "jump-start.yaml");
-  const files = globSync(filePattern, { cwd: dirPath, nodir: true });
+  const files = globSync(filePattern, {
+    cwd: dirPath,
+    nodir: true,
+    follow: true,
+    ignore: "jump-start-gallery/**",
+  });
 
   for (const filePath of files) {
     const fileData = yaml.load(
