@@ -2,7 +2,7 @@
 const nextConfig = {
   output: "export",
   distDir: "dist",
-  // basePath: "/jump-start",
+  basePath: "/jump-start",
 };
 
 export default nextConfig;
