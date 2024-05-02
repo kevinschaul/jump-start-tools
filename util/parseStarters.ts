@@ -20,16 +20,18 @@ export type GroupLookup = {
 export function parseStarters(dirPath: string): GroupLookup {
   const groups: GroupLookup = {};
 
-  const filePattern = path.join(dirPath, "**", "jump-start.yaml");
-  const files = globSync(filePattern, { nodir: true });
+  const filePattern = path.join("./**", "jump-start.yaml");
+  const files = globSync(filePattern, { cwd: dirPath, nodir: true });
 
   for (const filePath of files) {
-    const fileData = yaml.load(fs.readFileSync(filePath, "utf8")) as Starter;
-    
+    const fileData = yaml.load(
+      fs.readFileSync(path.join(dirPath, filePath), "utf8"),
+    ) as Starter;
+
     const dir = path.dirname(filePath);
     const group = path.dirname(path.dirname(filePath));
     const title = path.basename(path.dirname(filePath));
-    
+
     fileData.dir = dir;
     fileData.title = title;
     fileData.group = group;

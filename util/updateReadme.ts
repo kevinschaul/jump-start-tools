@@ -13,7 +13,9 @@ export function generateReadmeSection(groups: GroupLookup) {
     for (const data of groupData) {
       const tags = data.tags?.map((tag) => `\`${tag}\``).join(", ");
       output.push(`#### ${data.title}\n`);
-      output.push(`    npx degit kevinschaul/jump-start/${data.dir} ${data.defaultDir || data.dir}\n`);
+      output.push(
+        `    npx degit kevinschaul/jump-start/${data.dir} ${data.defaultDir || data.dir}\n`,
+      );
       if (data.description) {
         output.push(data.description);
       }
@@ -55,14 +57,22 @@ export function rewriteReadmeSection(
 }
 
 if (path.basename(import.meta.url) === "updateReadme.ts") {
-  const groups = parseStarters(".");
+  if (process.argv.length !== 3) {
+    console.log(`USAGE: tsx util/updateReadme.ts STARTERS_PATH`);
+    process.exit(1);
+  }
+
+  const startersPath = process.argv[2];
+  const readmePath = path.join(startersPath, "README.md");
+
+  const groups = parseStarters(startersPath);
   const startersSection = generateReadmeSection(groups);
 
-  const existingReadme = fs.readFileSync("README.md", "utf8");
+  const existingReadme = fs.readFileSync(readmePath, "utf8");
   const updatedReadme = rewriteReadmeSection(
     existingReadme,
     "## Starters",
     startersSection,
   );
-  fs.writeFileSync("README.md", updatedReadme);
+  fs.writeFileSync(readmePath, updatedReadme);
 }
