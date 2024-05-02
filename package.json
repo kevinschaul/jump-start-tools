@@ -1,0 +1,26 @@
+{
+  "name": "jump-start-gallery",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "update-gallery": "tsx util/updateStartersData.ts"
+  },
+  "dependencies": {
+    "next": "^14",
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "^14",
+    "glob": "^10",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}
