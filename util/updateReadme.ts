@@ -8,7 +8,7 @@ export function generateReadmeSection(groups: GroupLookup) {
   const output: string[] = [];
 
   for (const [groupName, groupData] of Object.entries(groups)) {
-    output.push(`### ${groupName}\n`);
+    output.push(`---\n\n### ${groupName}\n`);
 
     for (const data of groupData) {
       const tags = data.tags?.map((tag) => `\`${tag}\``).join(", ");

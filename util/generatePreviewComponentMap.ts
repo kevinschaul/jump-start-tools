@@ -28,7 +28,7 @@ if (path.basename(import.meta.url) === "generatePreviewComponentMap.ts") {
 
   const startersPath = process.argv[2];
 
-  const files = globSync("**/preview.js", {
+  const files = globSync("**/Preview.js", {
     cwd: startersPath,
     nodir: true,
     follow: true,
