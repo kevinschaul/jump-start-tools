@@ -15,7 +15,7 @@ export default async function PreviewWrap({ dir }: { dir: string }) {
       <p>
         <i>
           No preview found. To add a preview for this starter, add a
-          `preview.js` file.
+          `Preview.js` file.
         </i>
       </p>
     );
