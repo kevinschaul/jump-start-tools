@@ -16,10 +16,18 @@ export default function Home() {
       <h3>Starters with previews</h3>
 
       {Object.keys(componentMap).map((d) => {
+        const split = d.split("/");
+        const group = split[0];
+        const name = split[1];
         return (
           <div key={d}>
-            <h4><Link href={`/${d}`}>{d}</Link></h4>
+            <h4>
+              <Link href={`/${d}`}>
+                {group}/<b>{name}</b>
+              </Link>
+            </h4>
             <PreviewWrap dir={d} />
+            <hr />
           </div>
         );
       })}
