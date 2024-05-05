@@ -42,6 +42,7 @@ export default async function Starter({ params }: { params: Params }) {
 
         <hr />
 
+        <h3>Preview</h3>
         <PreviewWrap dir={starter.dir} />
 
         <hr />

@@ -6,7 +6,6 @@ export default async function PreviewWrap({ dir }: { dir: string }) {
 
     return (
       <div className="preview">
-        <h2>Preview</h2>
         <Preview />
       </div>
     );
