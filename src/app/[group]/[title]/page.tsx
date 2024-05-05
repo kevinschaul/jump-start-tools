@@ -7,6 +7,7 @@ import * as path from "path";
 import { readFileSync, readdirSync, statSync } from "fs";
 import CopyableCommand from "../../CopyableCommand";
 import StarterFile from "../../StarterFile";
+import PreviewWrap from "../../PreviewWrap";
 
 type Params = {
   group: string;
@@ -38,6 +39,10 @@ export default async function Starter({ params }: { params: Params }) {
         {starter.description?.split("\n").map((d, i) => {
           return <p key={i}>{d}</p>;
         })}
+
+        <hr />
+
+        <PreviewWrap dir={starter.dir} />
 
         <hr />
 

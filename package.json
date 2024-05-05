@@ -7,6 +7,8 @@
     "start": "next start",
     "lint": "next lint",
     "update-readme": "tsx util/updateReadme.ts ./",
+    "generate-preview-component-map": "tsx util/generatePreviewComponentMap.ts ./",
+    "generate-preview-component-map-submodule": "tsx util/generatePreviewComponentMap.ts",
     "update-readme-submodule": "tsx util/updateReadme.ts"
   },
   "dependencies": {
