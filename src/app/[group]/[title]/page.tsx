@@ -1,8 +1,11 @@
 import * as path from "path";
 import { readFileSync, readdirSync, statSync } from "fs";
+import dynamic from "next/dynamic";
 import CopyableCommand from "../../CopyableCommand";
-import StarterPreview from "../../StarterPreview";
 import { parseStarters, type Starter } from "../../../../util/parseStarters";
+const StarterPreview = dynamic(() => import("../../StarterPreview"), {
+  ssr: false
+});
 
 type Params = {
   group: string;
@@ -15,6 +18,7 @@ export default async function Starter({ params }: { params: Params }) {
     return null;
   } else {
     const files = await getStarterFiles(starter.dir);
+    
     return (
       <>
         <h1>
