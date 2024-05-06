@@ -4,6 +4,10 @@ import path from "path";
 // @ts-ignore
 import yaml from "js-yaml";
 
+export type StarterPreviewConfig = {
+  template?: string;
+  dependencies?: {[name: string]: [version: string]}
+};
 export type Starter = {
   dir: string;
   group: string;
@@ -11,6 +15,8 @@ export type Starter = {
   description?: string;
   tags?: string[];
   defaultDir?: string;
+  mainFile?: string;
+  preview?: StarterPreviewConfig;
 };
 
 export type GroupLookup = {

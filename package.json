@@ -12,6 +12,7 @@
     "update-readme-submodule": "tsx util/updateReadme.ts"
   },
   "dependencies": {
+    "@codesandbox/sandpack-react": "^2.13.10",
     "next": "^14",
     "react": "^18",
     "react-dom": "^18"

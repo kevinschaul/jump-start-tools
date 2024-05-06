@@ -1,13 +1,8 @@
-import {
-  parseStarters,
-  type GroupLookup,
-  type Starter,
-} from "../../../../util/parseStarters";
 import * as path from "path";
 import { readFileSync, readdirSync, statSync } from "fs";
 import CopyableCommand from "../../CopyableCommand";
-import StarterFile from "../../StarterFile";
-import PreviewWrap from "../../PreviewWrap";
+import StarterPreview from "../../StarterPreview";
+import { parseStarters, type Starter } from "../../../../util/parseStarters";
 
 type Params = {
   group: string;
@@ -43,17 +38,7 @@ export default async function Starter({ params }: { params: Params }) {
         <hr />
 
         <h3>Preview</h3>
-        <PreviewWrap dir={starter.dir} />
-
-        <hr />
-
-        <div>
-          {files.map((d) => {
-            return (
-              <StarterFile key={d.path} path={d.path} contents={d.contents} />
-            );
-          })}
-        </div>
+        <StarterPreview files={files} starter={starter} />
       </>
     );
   }
