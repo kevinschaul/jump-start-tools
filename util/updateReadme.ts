@@ -13,9 +13,11 @@ export function generateReadmeSection(groups: GroupLookup) {
     for (const data of groupData) {
       const tags = data.tags?.map((tag) => `\`${tag}\``).join(", ");
       output.push(`#### ${data.title}\n`);
-      output.push(
-        `    ${getStarterCommand(data, process.env.JUMP_START_GITHUB_USERNAME, process.env.JUMP_START_GITHUB_REPO)}\n`,
-      );
+      output.push(`
+\`\`\`
+${getStarterCommand(data, process.env.JUMP_START_GITHUB_USERNAME, process.env.JUMP_START_GITHUB_REPO)}
+\`\`\`
+`);
       if (data.description) {
         output.push(data.description);
       }
