@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import CopyableCommand from "../../CopyableCommand";
 import { parseStarters, type Starter } from "../../../../util/parseStarters";
 const StarterPreview = dynamic(() => import("../../StarterPreview"), {
-  ssr: false
+  ssr: false,
 });
 
 type Params = {
@@ -18,22 +18,19 @@ export default async function Starter({ params }: { params: Params }) {
     return null;
   } else {
     const files = await getStarterFiles(starter.dir);
-    
+
     return (
       <>
-        <h1>
-          {params.group}/<b>{params.title}</b>
-        </h1>
-
-        <CopyableCommand
-          command={`npx degit kevinschaul/jump-start/${starter.dir} ${starter.defaultDir || starter.dir}`}
-        />
-
-        <a
-          href={`https://www.github.com/kevinschaul/jump-start/tree/main/${params.group}/${params.title}`}
-        >
-          View on GitHub
-        </a>
+        <header>
+          <h1>
+            {params.group}/ <b>{params.title}</b>
+          </h1>
+          <a
+            href={`https://www.github.com/kevinschaul/jump-start/tree/main/${params.group}/${params.title}`}
+          >
+            View this starter on GitHub
+          </a>
+        </header>
 
         {starter.description?.split("\n").map((d, i) => {
           return <p key={i}>{d}</p>;
@@ -41,7 +38,15 @@ export default async function Starter({ params }: { params: Params }) {
 
         <hr />
 
-        <h3>Preview</h3>
+        <h3>Use this starter</h3>
+        <CopyableCommand
+          command={`npx degit kevinschaul/jump-start/${starter.dir} \\\n  ${starter.defaultDir || starter.dir}`}
+        />
+        <p>
+          Enter that command in your terminal, adjusting the last argument if
+          you want the starter files to end up somewhere else.
+        </p>
+
         <StarterPreview files={files} starter={starter} />
       </>
     );
