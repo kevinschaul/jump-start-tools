@@ -6,7 +6,7 @@ import yaml from "js-yaml";
 
 export type StarterPreviewConfig = {
   template?: string;
-  dependencies?: {[name: string]: [version: string]}
+  dependencies?: { [name: string]: [version: string] };
 };
 export type Starter = {
   dir: string;
@@ -54,4 +54,15 @@ export function parseStarters(dirPath: string): GroupLookup {
     groups[group].push(fileData);
   }
   return groups;
+}
+
+export function getStarterCommand(
+  starter: Starter,
+  githubUsername: string = "kevinschaul",
+  githubRepo: string = "jump-start",
+): string {
+  const outDirArg = starter.defaultDir || starter.dir
+  const firstArgs = `npx degit ${githubUsername}/${githubRepo}/${starter.dir}`
+  const separator = (firstArgs.length + outDirArg.length > 60) ? ' \\\n  ' : ' '
+  return `${firstArgs}${separator}${outDirArg}`
 }

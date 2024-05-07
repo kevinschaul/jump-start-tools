@@ -2,7 +2,11 @@ import * as path from "path";
 import { readFileSync, readdirSync, statSync } from "fs";
 import dynamic from "next/dynamic";
 import CopyableCommand from "../../CopyableCommand";
-import { parseStarters, type Starter } from "../../../../util/parseStarters";
+import {
+  getStarterCommand,
+  parseStarters,
+  type Starter,
+} from "../../../../util/parseStarters";
 const StarterPreview = dynamic(() => import("../../StarterPreview"), {
   ssr: false,
 });
@@ -26,7 +30,7 @@ export default async function Starter({ params }: { params: Params }) {
             {params.group}/ <b>{params.title}</b>
           </h1>
           <a
-            href={`https://www.github.com/kevinschaul/jump-start/tree/main/${params.group}/${params.title}`}
+            href={`https://www.github.com/${process.env.JUMP_START_GITHUB_USERNAME}/${process.env.JUMP_START_GITHUB_REPO}/tree/main/${params.group}/${params.title}`}
           >
             View this starter on GitHub
           </a>
@@ -40,7 +44,11 @@ export default async function Starter({ params }: { params: Params }) {
 
         <h3>Use this starter</h3>
         <CopyableCommand
-          command={`npx degit kevinschaul/jump-start/${starter.dir} \\\n  ${starter.defaultDir || starter.dir}`}
+          command={getStarterCommand(
+            starter,
+            process.env.JUMP_START_GITHUB_USERNAME,
+            process.env.JUMP_START_GITHUB_REPO,
+          )}
         />
         <p>
           Enter that command in your terminal, adjusting the last argument if

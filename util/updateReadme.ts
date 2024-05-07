@@ -2,7 +2,7 @@
 
 import fs from "fs";
 import path from "path";
-import { GroupLookup, parseStarters } from "./parseStarters";
+import { GroupLookup, getStarterCommand, parseStarters } from "./parseStarters";
 
 export function generateReadmeSection(groups: GroupLookup) {
   const output: string[] = [];
@@ -14,7 +14,7 @@ export function generateReadmeSection(groups: GroupLookup) {
       const tags = data.tags?.map((tag) => `\`${tag}\``).join(", ");
       output.push(`#### ${data.title}\n`);
       output.push(
-        `    npx degit kevinschaul/jump-start/${data.dir} ${data.defaultDir || data.dir}\n`,
+        `    ${getStarterCommand(data, process.env.JUMP_START_GITHUB_USERNAME, process.env.JUMP_START_GITHUB_REPO)}\n`,
       );
       if (data.description) {
         output.push(data.description);
