@@ -1,4 +1,4 @@
-const basePath = process.env.GITHUB_PAGES_BASE_PATH || "/";
+const basePath = process.env.GITHUB_PAGES_BASE_PATH || "";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
