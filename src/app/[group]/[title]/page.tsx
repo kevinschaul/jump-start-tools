@@ -1,6 +1,7 @@
 import * as path from "path";
 import { readFileSync, readdirSync, statSync } from "fs";
 import dynamic from "next/dynamic";
+import Markdown from 'react-markdown';
 import CopyableCommand from "../../CopyableCommand";
 import {
   getStarterCommand,
@@ -36,9 +37,7 @@ export default async function Starter({ params }: { params: Params }) {
           </a>
         </header>
 
-        {starter.description?.split("\n").map((d, i) => {
-          return <p key={i}>{d}</p>;
-        })}
+        <Markdown>{starter.description}</Markdown>
 
         <hr />
 
