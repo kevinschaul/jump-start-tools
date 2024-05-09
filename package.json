@@ -6,9 +6,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "update-readme": "tsx util/updateReadme.ts ./",
     "generate-preview-component-map": "tsx util/generatePreviewComponentMap.ts ./",
     "generate-preview-component-map-submodule": "tsx util/generatePreviewComponentMap.ts",
+    "update-screenshots": "tsx util/updateScreenshots.ts ./",
+    "update-screenshots-submodule": "tsx util/updateScreenshots.ts",
+    "update-readme": "tsx util/updateReadme.ts ./",
     "update-readme-submodule": "tsx util/updateReadme.ts"
   },
   "dependencies": {
