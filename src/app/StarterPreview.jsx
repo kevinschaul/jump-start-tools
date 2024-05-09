@@ -7,9 +7,14 @@ import {
   SandpackCodeEditor,
   useSandpack,
 } from "@codesandbox/sandpack-react";
+import { useEffect, useState } from "react";
 
 export default function StarterPreview(props) {
   const { starter, files } = props;
+
+  // Show in html whether the preview has rendered yet. Useful for taking
+  // screenshots of the previews.
+  const [hasPreviewRendered, setHasPreviewRendered] = useState(false)
 
   // Only render a preview if the starter has a preview entry
   const renderPreview = !!starter.preview;
@@ -42,7 +47,7 @@ export default function StarterPreview(props) {
   }
 
   return (
-    <div className="starter-preview">
+    <div className="starter-preview" data-has-rendered={hasPreviewRendered}>
       <SandpackProvider
         template={previewConfig?.template || "vanilla"}
         files={filesForSandpack}
@@ -54,6 +59,8 @@ export default function StarterPreview(props) {
             : {}
         }
       >
+        <SandpackListener setHasPreviewRendered={setHasPreviewRendered} />
+
         {renderPreview && (
           <>
             <hr />
@@ -77,4 +84,26 @@ export default function StarterPreview(props) {
       </SandpackProvider>
     </div>
   );
+}
+
+/* This is a bit goofy, but `useSandpack()` users must be a child
+ * of `SandpackProvider`
+ */
+function SandpackListener(props) {
+  const { setHasPreviewRendered } = props;
+  const { listen } = useSandpack();
+
+  useEffect(() => {
+    const stopListening = listen((msg) => {
+      if (msg.type === "success") {
+        setHasPreviewRendered(true)
+      }
+    });
+
+   return () => {
+      stopListening();
+    };
+  }, [listen]);
+
+  return null
 }
