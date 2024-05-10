@@ -1,11 +1,11 @@
 import * as path from "path";
-import { readFileSync, readdirSync, statSync } from "fs";
 import dynamic from "next/dynamic";
-import Markdown from 'react-markdown';
+import Markdown from "react-markdown";
 import CopyableCommand from "../../CopyableCommand";
 import {
   getStarterCommand,
   parseStarters,
+  getStarterFiles,
   type Starter,
 } from "../../../../util/parseStarters";
 const StarterPreview = dynamic(() => import("../../StarterPreview"), {
@@ -22,7 +22,9 @@ export default async function Starter({ params }: { params: Params }) {
   if (!starter) {
     return null;
   } else {
-    const files = await getStarterFiles(starter.dir);
+    const files = await getStarterFiles(
+      path.join(process.cwd(), "./src/starters/", starter.dir),
+    );
 
     return (
       <>
@@ -66,33 +68,6 @@ async function getStarter(
 ): Promise<Starter | undefined> {
   const starters = parseStarters(path.join(process.cwd(), "./src/starters/"));
   return starters[group].find((d) => d.title === title);
-}
-
-async function getStarterFiles(dirPath: string) {
-  const basePath = path.join(process.cwd(), "./src/starters/");
-  const files = readdirSync(path.join(basePath, dirPath));
-  let out = [];
-
-  for (const file of files) {
-    if (!["jump-start.yaml", "degit.json"].includes(file)) {
-      const filePath = path.join(basePath, dirPath, file);
-      const stats = statSync(filePath);
-      if (stats.isDirectory()) {
-        out.push({
-          path: file,
-          type: "dir",
-        });
-      } else {
-        out.push({
-          path: file,
-          type: "file",
-          contents: readFileSync(filePath, "utf8"),
-        });
-      }
-    }
-  }
-
-  return out;
 }
 
 export async function generateStaticParams() {

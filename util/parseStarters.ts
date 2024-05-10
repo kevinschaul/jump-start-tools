@@ -1,4 +1,4 @@
-import fs from "fs";
+import { readFileSync, readdirSync, statSync } from "fs";
 import { globSync } from "glob";
 import path from "path";
 // @ts-ignore
@@ -36,7 +36,7 @@ export function parseStarters(dirPath: string): GroupLookup {
 
   for (const filePath of files) {
     const fileData = yaml.load(
-      fs.readFileSync(path.join(dirPath, filePath), "utf8"),
+      readFileSync(path.join(dirPath, filePath), "utf8"),
     ) as Starter;
 
     const dir = path.dirname(filePath);
@@ -61,8 +61,34 @@ export function getStarterCommand(
   githubUsername: string = "kevinschaul",
   githubRepo: string = "jump-start",
 ): string {
-  const outDirArg = starter.defaultDir || starter.dir
-  const firstArgs = `npx degit ${githubUsername}/${githubRepo}/${starter.dir}`
-  const separator = (firstArgs.length + outDirArg.length > 60) ? ' \\\n  ' : ' '
-  return `${firstArgs}${separator}${outDirArg}`
+  const outDirArg = starter.defaultDir || starter.dir;
+  const firstArgs = `npx degit ${githubUsername}/${githubRepo}/${starter.dir}`;
+  const separator = firstArgs.length + outDirArg.length > 60 ? " \\\n  " : " ";
+  return `${firstArgs}${separator}${outDirArg}`;
+}
+
+export async function getStarterFiles(dirPath: string) {
+  const files = readdirSync(dirPath);
+  let out = [];
+
+  for (const file of files) {
+    if (!["jump-start.yaml", "degit.json"].includes(file)) {
+      const filePath = path.join(dirPath, file);
+      const stats = statSync(filePath);
+      if (stats.isDirectory()) {
+        out.push({
+          path: file,
+          type: "dir",
+        });
+      } else {
+        out.push({
+          path: file,
+          type: "file",
+          contents: readFileSync(filePath, "utf8"),
+        });
+      }
+    }
+  }
+
+  return out;
 }
