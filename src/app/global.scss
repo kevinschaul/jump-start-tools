@@ -92,7 +92,7 @@ header {
   h1 {
     margin-bottom: 0;
   }
-  @media(max-width: 480px) {
+  @media (max-width: 480px) {
     display: block;
   }
   a {
@@ -141,6 +141,26 @@ header {
   padding: 1.2rem 0.9rem;
 }
 
+.starter-preview-mini-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem 2rem;
+  margin-top: 2rem;
+}
+.starter-preview-mini {
+  width: 100%;
+  max-width: 400px;
+  .image-wrap {
+    position: relative;
+    img {
+      object-fit: none;
+      object-position: left top;
+    }
+    padding-bottom: 25%;
+    border: 1px solid $main-mid;
+  }
+}
+
 .copyable-command {
   position: relative;
   margin-bottom: 1rem;
@@ -178,4 +198,3 @@ header {
     margin-bottom: 1rem;
   }
 }
-
