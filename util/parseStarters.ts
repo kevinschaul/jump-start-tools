@@ -32,7 +32,7 @@ export function parseStarters(dirPath: string): GroupLookup {
     cwd: dirPath,
     nodir: true,
     follow: true,
-    ignore: "src/starters/**",
+    ignore: ["*/src/starters/**"],
   });
 
   for (const filePath of files) {
