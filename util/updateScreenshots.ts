@@ -6,12 +6,13 @@ import { parseStarters } from "./parseStarters";
 import { execSync } from "child_process";
 
 if (path.basename(import.meta.url) === "updateScreenshots.ts") {
-  if (process.argv.length !== 3) {
-    console.log(`USAGE: tsx util/updateScreenshots.ts STARTERS_PATH`);
-    process.exit(1);
-  }
+  let startersPath = process.env["JUMP_START_STARTERS"];
 
-  const startersPath = process.argv[2];
+  if (!startersPath) {
+    console.log(`No env variable found: JUMP_START_STARTER`);
+    console.log(`Using JUMP_START_STARTER=./ by default`);
+    startersPath = "./";
+  }
 
   const groups = parseStarters(startersPath);
   for (const group in groups) {

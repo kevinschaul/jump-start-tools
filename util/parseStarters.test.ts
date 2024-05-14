@@ -1,14 +1,18 @@
-import { beforeEach, expect, test } from "vitest";
-import { GroupLookup, parseStarters } from "./parseStarters.ts";
-import mockFS from "mock-fs";
+import { expect, test, vi } from "vitest";
+import { vol } from "memfs";
+import { GroupLookup, parseStarters } from "./parseStarters";
+
+vi.mock("node:fs", async () => {
+  const memfs = await vi.importActual("memfs");
+  return { default: memfs.fs };
+});
 
 test("basic", () => {
-  beforeEach(() => {
-    mockFS({
-      ".": {
-        "react-d3": {
-          Chart: {
-            "jump-start.yml": `
+  vol.fromNestedJSON({
+    ".": {
+      "react-d3": {
+        Chart: {
+          "jump-start.yaml": `
 ---
 description: |
   An empty React component for writing a responsive D3 chart.
@@ -20,11 +24,11 @@ tags:
   - d3
   - chart
 `,
-          },
         },
       },
-    });
+    },
   });
+
   const expected: GroupLookup = {
     "react-d3": [
       {

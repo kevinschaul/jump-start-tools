@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "fs";
+import fs from "fs";
 import { globSync } from "glob";
 import path from "path";
 // @ts-ignore
@@ -28,15 +28,16 @@ export function parseStarters(dirPath: string): GroupLookup {
 
   const filePattern = path.join("./**", "jump-start.yaml");
   const files = globSync(filePattern, {
+    fs: fs,
     cwd: dirPath,
     nodir: true,
     follow: true,
-    ignore: "jump-start-gallery/**",
+    ignore: "src/starters/**",
   });
 
   for (const filePath of files) {
     const fileData = yaml.load(
-      readFileSync(path.join(dirPath, filePath), "utf8"),
+      fs.readFileSync(path.join(dirPath, filePath), "utf8"),
     ) as Starter;
 
     const dir = path.dirname(filePath);
@@ -68,13 +69,13 @@ export function getStarterCommand(
 }
 
 export async function getStarterFiles(dirPath: string) {
-  const files = readdirSync(dirPath);
+  const files = fs.readdirSync(dirPath);
   let out = [];
 
   for (const file of files) {
     if (!["jump-start.yaml", "degit.json"].includes(file)) {
       const filePath = path.join(dirPath, file);
-      const stats = statSync(filePath);
+      const stats = fs.statSync(filePath);
       if (stats.isDirectory()) {
         out.push({
           path: file,
@@ -84,7 +85,7 @@ export async function getStarterFiles(dirPath: string) {
         out.push({
           path: file,
           type: "file",
-          contents: readFileSync(filePath, "utf8"),
+          contents: fs.readFileSync(filePath, "utf8"),
         });
       }
     }

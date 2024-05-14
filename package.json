@@ -1,34 +1,41 @@
 {
   "name": "jump-start-gallery",
   "version": "0.0.0",
+  "description": "The gallery app for jump-start: A shortcut to your favorite code",
+  "type": "module",
+  "main": "src/index.ts",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run update-readme && next build",
     "start": "next start",
     "lint": "next lint",
-    "generate-preview-component-map": "tsx util/generatePreviewComponentMap.ts ./",
-    "generate-preview-component-map-submodule": "tsx util/generatePreviewComponentMap.ts",
-    "update-screenshots": "tsx util/updateScreenshots.ts ./",
-    "update-screenshots-submodule": "tsx util/updateScreenshots.ts",
-    "update-readme": "tsx util/updateReadme.ts ./",
-    "update-readme-submodule": "tsx util/updateReadme.ts"
+    "test": "vitest",
+    "update-screenshots": "tsx util/updateScreenshots.ts",
+    "update-readme": "tsx util/updateReadme.ts"
   },
   "dependencies": {
-    "@codesandbox/sandpack-react": "^2.13.10",
+    "@codesandbox/sandpack-react": "^2",
     "next": "^14",
     "react": "^18",
     "react-dom": "^18",
-    "react-markdown": "^9.0.1"
+    "react-markdown": "^9"
   },
   "devDependencies": {
+    "@testing-library/react": "^15",
+    "@types/mock-fs": "^4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vitejs/plugin-react": "^4",
     "eslint": "^8",
     "eslint-config-next": "^14",
     "glob": "^10",
-    "sass": "^1.77.0",
+    "jsdom": "^24",
+    "memfs": "^4",
+    "mock-fs": "^5",
+    "sass": "^1",
     "tsx": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^1"
   }
 }

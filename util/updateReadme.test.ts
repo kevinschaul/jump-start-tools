@@ -1,6 +1,5 @@
 import { expect, test } from "vitest";
-import { GroupLookup, parseStarters } from "./parseStarters.ts";
-import { generateReadmeSection, rewriteReadmeSection } from "./updateReadme.ts";
+import { generateReadmeSection, rewriteReadmeSection } from "./updateReadme";
 
 test("basic", () => {
   expect(
@@ -15,15 +14,20 @@ test("basic", () => {
 * Adds size prop
 * Sets up margin convention
 `,
+          defaultDir: 'out',
           tags: ["react", "d3", "chart"],
         },
       ],
     }),
-  ).toBe(`### react-d3
+  ).toBe(`---
+
+### react-d3
 
 #### Chart
 
-    degit kevinschaul/jump-start/react-d3/Chart
+\`\`\`
+npx degit kevinschaul/jump-start/react-d3/Chart out
+\`\`\`
 
 An empty React component for writing a responsive D3 chart.
 

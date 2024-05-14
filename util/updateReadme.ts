@@ -12,7 +12,7 @@ export function generateReadmeSection(groups: GroupLookup) {
 
     for (const data of groupData) {
       const tags = data.tags?.map((tag) => `\`${tag}\``).join(", ");
-      output.push(`#### ${data.title}\n`);
+      output.push(`#### ${data.title}`);
       output.push(`
 \`\`\`
 ${getStarterCommand(data, process.env.JUMP_START_GITHUB_USERNAME, process.env.JUMP_START_GITHUB_REPO)}
@@ -59,12 +59,14 @@ export function rewriteReadmeSection(
 }
 
 if (path.basename(import.meta.url) === "updateReadme.ts") {
-  if (process.argv.length !== 3) {
-    console.log(`USAGE: tsx util/updateReadme.ts STARTERS_PATH`);
-    process.exit(1);
+  let startersPath = process.env["JUMP_START_STARTERS"];
+
+  if (!startersPath) {
+    console.log(`No env variable found: JUMP_START_STARTER`);
+    console.log(`Using JUMP_START_STARTER=./ by default`);
+    startersPath = "./";
   }
 
-  const startersPath = process.argv[2];
   const readmePath = path.join(startersPath, "README.md");
 
   const groups = parseStarters(startersPath);
