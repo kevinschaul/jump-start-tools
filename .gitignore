@@ -45,3 +45,5 @@ public/screenshots
 stories/
 
 *storybook.log
+
+storybook-static
