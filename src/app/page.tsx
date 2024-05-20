@@ -8,6 +8,8 @@ import {
 } from "../../util/parseStarters";
 import Image from "next/image";
 
+const basePath = process.env.NEXT_JS_BASE_PATH;
+
 export default async function Home() {
   const starters = parseStarters(path.join(process.cwd(), "./src/starters/"));
 
@@ -44,7 +46,7 @@ export default async function Home() {
               <Link href={`/${starter.dir}`}>
                 <div className="image-wrap">
                   <Image
-                    src={`/screenshots/${starter.group}/${starter.title}.png`}
+                    src={`${basePath}/screenshots/${starter.group}/${starter.title}.png`}
                     alt={`Preview of ${starter.title}`}
                     fill={true}
                   />

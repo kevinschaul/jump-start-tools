@@ -5,7 +5,9 @@ const nextConfig = {
   output: "export",
   distDir: "dist",
   basePath: basePath,
-  images: { unoptimized: true }
+  images: { unoptimized: true },
 };
+
+process.env.NEXT_JS_BASE_PATH = basePath;
 
 export default nextConfig;
