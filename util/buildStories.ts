@@ -10,6 +10,7 @@ import { getStarterCommand, parseStarters, getStarterFiles } from "../src/";
  * title, description, command and previewable code
  */
 (async () => {
+  console.log(JSON.stringify(process.env))
   const startersPath = path.join(__dirname, "../../");
   const storiesPath = path.join(__dirname, "../stories/starters/");
   const groups = parseStarters(startersPath);
