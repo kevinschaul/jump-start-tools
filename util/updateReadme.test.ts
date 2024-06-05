@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import { generateReadmeSection, rewriteReadmeSection } from "./updateReadme";
+require("dotenv").config({ path: "./.env.test", override: true });
 
 test("basic", () => {
   expect(
@@ -14,7 +15,7 @@ test("basic", () => {
 * Adds size prop
 * Sets up margin convention
 `,
-          defaultDir: 'out',
+          defaultDir: "out",
           tags: ["react", "d3", "chart"],
         },
       ],
@@ -26,7 +27,7 @@ test("basic", () => {
 #### Chart
 
 \`\`\`
-npx degit kevinschaul/jump-start/react-d3/Chart out
+npx tiged kevinschaul/jump-start/react-d3/Chart out
 \`\`\`
 
 An empty React component for writing a responsive D3 chart.

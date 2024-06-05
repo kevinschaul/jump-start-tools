@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { vol } from "memfs";
 import { GroupLookup, parseStarters } from "./parseStarters";
+require("dotenv").config({ path: "./.env.test", override: true });
 
 vi.mock("node:fs", async () => {
   const memfs = await vi.importActual("memfs");

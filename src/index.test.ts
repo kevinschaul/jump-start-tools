@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import * as index from "./";
+require("dotenv").config({ path: "./.env.test", override: true });
 
 test('exports', () => {
   expect(index).toHaveProperty("parseStarters");
