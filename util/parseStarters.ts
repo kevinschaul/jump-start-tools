@@ -64,7 +64,8 @@ export function getStarterCommand(
   degitMode: string = "tar",
 ): string {
   const outDirArg = starter.defaultDir || starter.dir;
-  const firstArgs = `npx degit --mode=${degitMode} ${githubUsername}/${githubRepo}/${starter.dir}`;
+  const degitModeString = degitMode === "tar" ? "" : ` --mode=${degitMode}`
+  const firstArgs = `npx degit${degitModeString} ${githubUsername}/${githubRepo}/${starter.dir}`;
   const separator = firstArgs.length + outDirArg.length > 60 ? " \\\n  " : " ";
   return `${firstArgs}${separator}${outDirArg}`;
 }

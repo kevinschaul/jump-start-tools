@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import "dotenv/config";
 
 import { getStarterCommand, parseStarters, getStarterFiles } from "../src/";
 
@@ -49,12 +50,12 @@ import starter from './starter.json';
 
 ${starter.description}
 
-[View on GitHub](https://github.com/WPMedia/gfx-jump-start/tree/main/${starter.group}/${starter.title})
+[View on GitHub](https://github.com/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPO}/tree/main/${starter.group}/${starter.title})
 
 ## Use this starter
 
 \`\`\`
-${getStarterCommand(starter, "WPMedia", "gfx-jump-start")}
+${getStarterCommand(starter, process.env.GITHUB_USERNAME, process.env.GITHUB_REPO, process.env.DEGIT_MODE)}
 \`\`\`
 
 <StarterPreview files={files} starter={starter} />
