@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import "dotenv/config";
 import { GroupLookup, getStarterCommand, parseStarters } from "./parseStarters";
 
 export function generateReadmeSection(groups: GroupLookup) {
@@ -15,7 +16,7 @@ export function generateReadmeSection(groups: GroupLookup) {
       output.push(`#### ${data.title}`);
       output.push(`
 \`\`\`
-${getStarterCommand(data, process.env.JUMP_START_GITHUB_USERNAME, process.env.JUMP_START_GITHUB_REPO)}
+${getStarterCommand(data, process.env.GITHUB_USERNAME, process.env.GITHUB_REPO, process.env.DEGIT_MODE)}
 \`\`\`
 `);
       if (data.description) {

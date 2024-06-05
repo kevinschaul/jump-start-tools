@@ -2,6 +2,7 @@
 
 import { mkdirSync } from "fs";
 import path from "path";
+import "dotenv/config";
 import { parseStarters } from "./parseStarters";
 import { execSync } from "child_process";
 

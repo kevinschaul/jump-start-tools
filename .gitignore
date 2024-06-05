@@ -47,3 +47,6 @@ stories/
 *storybook.log
 
 storybook-static
+
+# This will be a symlink from a jump-start repo
+.env

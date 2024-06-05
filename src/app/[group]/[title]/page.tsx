@@ -33,7 +33,7 @@ export default async function Starter({ params }: { params: Params }) {
             {params.group}/ <b>{params.title}</b>
           </h1>
           <a
-            href={`https://www.github.com/${process.env.JUMP_START_GITHUB_USERNAME}/${process.env.JUMP_START_GITHUB_REPO}/tree/main/${params.group}/${params.title}`}
+            href={`https://www.github.com/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPO}/tree/main/${params.group}/${params.title}`}
           >
             View this starter on GitHub
           </a>
@@ -47,8 +47,9 @@ export default async function Starter({ params }: { params: Params }) {
         <CopyableCommand
           command={getStarterCommand(
             starter,
-            process.env.JUMP_START_GITHUB_USERNAME,
-            process.env.JUMP_START_GITHUB_REPO,
+            process.env.GITHUB_USERNAME,
+            process.env.GITHUB_REPO,
+            process.env.DEGIT_MODE,
           )}
         />
         <p>
