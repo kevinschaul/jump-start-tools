@@ -1,21 +1,16 @@
-#!/usr/bin/env node
-
 import fs from "fs";
 import path from "path";
-import "dotenv/config";
+import { getStarterFiles, parseStarters } from "./parseStarters";
+import { getStarterCommand } from "./getStarterCommand";
 
-import { getStarterCommand, parseStarters, getStarterFiles } from "../src/";
+export default function updateStories(startersDir: string, storiesDir: string) {
+  // Delete existing stories
+  fs.rmSync(storiesDir, { recursive: true, force: true });
 
-/* For each starter in `startersPath`, write a Storybook page including the
- * title, description, command and previewable code
- */
-(async () => {
-  const startersPath = path.join(__dirname, "../../");
-  const storiesPath = path.join(__dirname, "../stories/starters/");
-  const groups = parseStarters(startersPath);
+  const groups = parseStarters(startersDir, true);
 
   for (const group in groups) {
-    const groupDir = path.join(storiesPath, group);
+    const groupDir = path.join(storiesDir, group);
     try {
       fs.mkdirSync(groupDir);
     } catch (e) {
@@ -34,14 +29,14 @@ import { getStarterCommand, parseStarters, getStarterFiles } from "../src/";
       }
 
       fs.writeFileSync(outStarterJson, JSON.stringify(starter, null, 2));
-      const files = await getStarterFiles(
-        path.join(startersPath, starter.group, starter.title),
+      const files = getStarterFiles(
+        path.join(startersDir, starter.group, starter.title),
       );
       fs.writeFileSync(outFilesJson, JSON.stringify(files, null, 2));
 
       const mdx = `
 import { Meta, Title } from '@storybook/blocks';
-import StarterPreview from '../../../../src/app/StarterPreview';
+import StarterPreview from '../../../StarterPreview';
 import files from './files.json';
 import starter from './starter.json';
 
@@ -58,9 +53,9 @@ ${starter.description}
 ${getStarterCommand(starter, process.env.GITHUB_USERNAME, process.env.GITHUB_REPO, process.env.DEGIT_MODE)}
 \`\`\`
 
-<StarterPreview files={files} starter={starter} />
+<StarterPreview starter={starter} />
 `;
       fs.writeFileSync(outFileMdx, mdx);
     }
   }
-})();
+}

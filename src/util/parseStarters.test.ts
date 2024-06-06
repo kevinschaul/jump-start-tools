@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { vol } from "memfs";
-import { GroupLookup, parseStarters } from "./parseStarters";
+import type { StarterGroupLookup } from "../types";
+import { parseStarters } from "./parseStarters";
 require("dotenv").config({ path: "./.env.test", override: true });
 
 vi.mock("node:fs", async () => {
@@ -30,7 +31,7 @@ tags:
     },
   });
 
-  const expected: GroupLookup = {
+  const expected: StarterGroupLookup = {
     "react-d3": [
       {
         title: "Chart",

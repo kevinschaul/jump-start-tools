@@ -3,36 +3,20 @@ import { globSync } from "glob";
 import path from "path";
 // @ts-ignore
 import yaml from "js-yaml";
+import type { File, Starter, StarterGroupLookup } from "../types";
 
-export type StarterPreviewConfig = {
-  template?: string;
-  dependencies?: { [name: string]: [version: string] };
-};
-export type Starter = {
-  dir: string;
-  group: string;
-  title: string;
-  description?: string;
-  tags?: string[];
-  defaultDir?: string;
-  mainFile?: string;
-  preview?: StarterPreviewConfig;
-};
-
-export type GroupLookup = {
-  [key: string]: Starter[];
-};
-
-export function parseStarters(dirPath: string): GroupLookup {
-  const groups: GroupLookup = {};
+export function parseStarters(
+  dirPath: string,
+  includeFileData = false,
+): StarterGroupLookup {
+  const groups: StarterGroupLookup = {};
 
   const filePattern = path.join("./**", "jump-start.yaml");
   const files = globSync(filePattern, {
     fs: fs,
     cwd: dirPath,
     nodir: true,
-    follow: true,
-    ignore: ["*/src/starters/**"],
+    ignore: ["node_modules/**/*", "jump-start-tools/**/*"],
   });
 
   for (const filePath of files) {
@@ -48,6 +32,10 @@ export function parseStarters(dirPath: string): GroupLookup {
     fileData.title = title;
     fileData.group = group;
 
+    if (includeFileData) {
+      fileData.files = getStarterFiles(path.join(dirPath, dir));
+    }
+
     if (!(group in groups)) {
       groups[group] = [];
     }
@@ -57,20 +45,7 @@ export function parseStarters(dirPath: string): GroupLookup {
   return groups;
 }
 
-export function getStarterCommand(
-  starter: Starter,
-  githubUsername: string = "kevinschaul",
-  githubRepo: string = "jump-start",
-  degitMode: string = "tar",
-): string {
-  const outDirArg = starter.defaultDir || starter.dir;
-  const degitModeString = degitMode === "tar" ? "" : ` --mode=${degitMode}`
-  const firstArgs = `npx tiged${degitModeString} ${githubUsername}/${githubRepo}/${starter.dir}`;
-  const separator = firstArgs.length + outDirArg.length > 60 ? " \\\n  " : " ";
-  return `${firstArgs}${separator}${outDirArg}`;
-}
-
-export async function getStarterFiles(dirPath: string) {
+export function getStarterFiles(dirPath: string): File[] {
   const files = fs.readdirSync(dirPath);
   let out = [];
 
@@ -82,13 +57,13 @@ export async function getStarterFiles(dirPath: string) {
         out.push({
           path: file,
           type: "dir",
-        });
+        } as File);
       } else {
         out.push({
           path: file,
           type: "file",
           contents: fs.readFileSync(filePath, "utf8"),
-        });
+        } as File);
       }
     }
   }

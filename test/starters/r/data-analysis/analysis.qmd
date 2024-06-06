@@ -1,0 +1,56 @@
+---
+title: "SLUG"
+author: "Kevin Schaul"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+format:
+  html:
+    # https://quarto.org/docs/reference/formats/html.html
+    toc: TRUE
+    toc-location: left
+    embed-resources: TRUE
+
+execute:
+  # https://quarto.org/docs/computations/execution-options.html
+  warning: FALSE
+
+# https://yihui.org/knitr/options/
+# Honestly no idea why this works
+knitr:
+  opts_chunk:
+    code-fold: TRUE
+---
+
+## Analysis
+
+```{r setup, include=F}
+knitr::opts_chunk$set(
+  comment = NA,
+  warning = FALSE,
+  message = FALSE,
+  fig.path = 'figs/'
+)
+# Disable scientific notation
+options(scipen = 999)
+
+library(tidyverse)
+library(reactable)
+```
+
+```{r, eval=F}
+data <- read_csv('data/raw/my', col_types = cols('fips' = 'c'))
+
+data %>%
+  reactable(
+    searchable = T,
+    defaultSorted = c('rank'),
+    columns = list(
+      dollar_col = colDef(format = colFormat(
+        prefix = "$",
+        separators = TRUE,
+        digits = 0
+      )),
+      pct_col = colDef(format = colFormat(percent = TRUE, digits = 1))
+    )
+  )
+```
+

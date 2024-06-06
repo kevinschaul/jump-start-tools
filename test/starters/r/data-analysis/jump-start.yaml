@@ -1,0 +1,5 @@
+---
+description: |
+  A Quarto/R template for data journalism projects
+defaultDir: analysis
+mainFile: analysis.qmd
