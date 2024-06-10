@@ -5,6 +5,7 @@ import path from "path";
 import "dotenv/config";
 
 import { getStarterCommand, parseStarters, getStarterFiles } from "../src/";
+import { rewriteReadmeSection } from "./updateReadme";
 
 /* For each starter in `startersPath`, write a Storybook page including the
  * title, description, command and previewable code
@@ -14,6 +15,26 @@ import { getStarterCommand, parseStarters, getStarterFiles } from "../src/";
   const storiesPath = path.join(__dirname, "../stories/starters/");
   const groups = parseStarters(startersPath);
 
+  const readme = fs.readFileSync(
+    path.join(__dirname, "../../README.md"),
+    "utf-8",
+  );
+  const readmeWithoutStarters = rewriteReadmeSection(readme, "## Starters", "View available starters on the left")
+
+  // Write out an overview story
+  const outFileMdx = path.join(storiesPath, "../", "jump-start.mdx");
+  const mdx = `
+import { Meta, Title } from '@storybook/blocks';
+
+<Meta title='Jump Start' />
+[View on GitHub](https://github.com/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPO})
+
+${readmeWithoutStarters}
+`;
+
+  fs.writeFileSync(outFileMdx, mdx);
+
+  // Write out a story for each starter
   for (const group in groups) {
     const groupDir = path.join(storiesPath, group);
     try {
