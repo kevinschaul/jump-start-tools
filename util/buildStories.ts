@@ -15,11 +15,21 @@ import { rewriteReadmeSection } from "./updateReadme";
   const storiesPath = path.join(__dirname, "../stories/starters/");
   const groups = parseStarters(startersPath);
 
+  try {
+    fs.mkdirSync(storiesPath, { recursive: true });
+  } catch (e) {
+    null;
+  }
+
   const readme = fs.readFileSync(
     path.join(__dirname, "../../README.md"),
     "utf-8",
   );
-  const readmeWithoutStarters = rewriteReadmeSection(readme, "## Starters", "View available starters on the left")
+  const readmeWithoutStarters = rewriteReadmeSection(
+    readme,
+    "## Starters",
+    "View available starters on the left",
+  );
 
   // Write out an overview story
   const outFileMdx = path.join(storiesPath, "../", "jump-start.mdx");
