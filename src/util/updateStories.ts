@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { getStarterFiles, parseStarters } from "./parseStarters";
 import { getStarterCommand } from "./getStarterCommand";
+import { rewriteReadmeSection } from "./updateReadme";
 
 export default function updateStories(startersDir: string, storiesDir: string) {
   // Delete existing stories
@@ -9,6 +10,36 @@ export default function updateStories(startersDir: string, storiesDir: string) {
 
   const groups = parseStarters(startersDir, true);
 
+  try {
+    fs.mkdirSync(storiesDir, { recursive: true });
+  } catch (e) {
+    null;
+  }
+
+  const readme = fs.readFileSync(
+    path.join(__dirname, "../../README.md"),
+    "utf-8",
+  );
+  const readmeWithoutStarters = rewriteReadmeSection(
+    readme,
+    "## Starters",
+    "View available starters on the left",
+  );
+
+  // Write out an overview story
+  const outFileMdx = path.join(storiesDir, "../", "jump-start.mdx");
+  const mdx = `
+import { Meta, Title } from '@storybook/blocks';
+
+<Meta title='Jump Start' />
+[View on GitHub](https://github.com/${process.env.GITHUB_USERNAME}/${process.env.GITHUB_REPO})
+
+${readmeWithoutStarters}
+`;
+
+  fs.writeFileSync(outFileMdx, mdx);
+
+  // Write out a story for each starter
   for (const group in groups) {
     const groupDir = path.join(storiesDir, group);
     try {
