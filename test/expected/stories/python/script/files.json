@@ -1,0 +1,7 @@
+[
+  {
+    "path": "convert.py",
+    "type": "file",
+    "contents": "#!/usr/bin/env python\n\nfrom argparse import ArgumentParser\n\n\ndef cli():\n    parser = ArgumentParser()\n    parser.add_argument(\"file\", help=\"Input file\")\n    args = parser.parse_args()\n    return args\n\n\ndef main():\n    args = cli()\n    print(args.file)\n\n\nif __name__ == \"__main__\":\n    main()\n"
+  }
+]

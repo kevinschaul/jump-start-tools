@@ -1,0 +1,15 @@
+{
+  "description": "A demo Makefile for creating map tiles at the county level\n",
+  "defaultDir": "geo",
+  "mainFile": "Makefile",
+  "dir": "geo/pmtiles-counties",
+  "title": "pmtiles-counties",
+  "group": "geo",
+  "files": [
+    {
+      "path": "Makefile",
+      "type": "file",
+      "contents": "SLUG := slug-here\nVERSION := 0\n\n.PHONY: all\nall: \\\n\tgeo/clean/$(SLUG)-v$(VERSION).pmtiles\n\t\n.PHONY: clean\nclean:\n\trm -rf geo/raw/*\n\ngeo/raw/us-highest-res.shp:\n\tmkdir -p $(dir $@)\n\twget -qcO geo/raw/us-highest-res.zip 'https://www.dropbox.com/s/0w2e11461zagblu/us-highest-res.zip'\n\tunzip -o geo/raw/us-highest-res.zip -d $(dir $@)\n\ngeo/raw/us-clipBy.shp: geo/raw/us-highest-res.shp\n\tmkdir -p $(dir $@)\n\tnpx mapshaper -i $< \\\n\t\t-dissolve2 \\\n\t\t-o $@\n\t\ngeo/raw/cb_2018_us_county_500k.shp:\n\tmkdir -p $(dir $@)\n\twget -qcO geo/raw/cb_2018_us_county_500k.zip 'https://www2.census.gov/geo/tiger/GENZ2018/shp/cb_2018_us_county_500k.zip'\n\tunzip geo/raw/cb_2018_us_county_500k.zip -d $(dir $@)\n\ngeo/clean/counties.json: geo/raw/cb_2018_us_county_500k.shp analysis/data/clean/map_by_county.csv geo/raw/us-clipBy.shp\n\tnpx mapshaper \\\n\t\t-i $< \\\n\t\t-filter \"'78,72,69,66,60'.indexOf(STATEFP) == -1\" \\\n\t\t-clip geo/raw/us-clipBy.shp \\\n\t\t-clean \\\n\t\t-join analysis/data/clean/map_by_county.csv \\\n\t\t\tkeys=GEOID,GEOID string-fields=GEOID \\\n\t\t-info \\\n\t\t-each 'GEOID_N = +GEOID' \\\n\t\t-o gj2008 id-field=GEOID_N $@\n\ngeo/clean/counties.shp: geo/clean/counties.json\n\tnpx mapshaper \\\n\t\t-i $< \\\n\t\t-o $@\n\ngeo/clean/$(SLUG)-v$(VERSION).pmtiles: geo/clean/counties.json\n\tmkdir -p $(dir $@)\n\ttippecanoe \\\n\t\t--force \\\n\t\t--named-layer=counties:geo/clean/counties.json \\\n\t\t--read-parallel \\\n\t\t--no-polygon-splitting \\\n\t\t--no-tile-size-limit \\\n\t\t--drop-rate=0 \\\n\t\t--maximum-zoom=12 \\\n\t\t--name=analysis \\\n\t\t--output $@\n\n"
+    }
+  ]
+}

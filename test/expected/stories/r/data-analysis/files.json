@@ -1,0 +1,12 @@
+[
+  {
+    "path": "analysis.Rproj",
+    "type": "file",
+    "contents": "Version: 1.0\n\nRestoreWorkspace: Default\nSaveWorkspace: Default\nAlwaysSaveHistory: Default\n\nEnableCodeIndexing: Yes\nUseSpacesForTab: Yes\nNumSpacesForTab: 2\nEncoding: UTF-8\n\nRnwWeave: Sweave\nLaTeX: pdfLaTeX\n"
+  },
+  {
+    "path": "analysis.qmd",
+    "type": "file",
+    "contents": "---\ntitle: \"SLUG\"\nauthor: \"Kevin Schaul\"\ndate: \"`r format(Sys.Date(), '%B %d, %Y')`\"\nformat:\n  html:\n    # https://quarto.org/docs/reference/formats/html.html\n    toc: TRUE\n    toc-location: left\n    embed-resources: TRUE\n\nexecute:\n  # https://quarto.org/docs/computations/execution-options.html\n  warning: FALSE\n\n# https://yihui.org/knitr/options/\n# Honestly no idea why this works\nknitr:\n  opts_chunk:\n    code-fold: TRUE\n---\n\n## Analysis\n\n```{r setup, include=F}\nknitr::opts_chunk$set(\n  comment = NA,\n  warning = FALSE,\n  message = FALSE,\n  fig.path = 'figs/'\n)\n# Disable scientific notation\noptions(scipen = 999)\n\nlibrary(tidyverse)\nlibrary(reactable)\n```\n\n```{r, eval=F}\ndata <- read_csv('data/raw/my', col_types = cols('fips' = 'c'))\n\ndata %>%\n  reactable(\n    searchable = T,\n    defaultSorted = c('rank'),\n    columns = list(\n      dollar_col = colDef(format = colFormat(\n        prefix = \"$\",\n        separators = TRUE,\n        digits = 0\n      )),\n      pct_col = colDef(format = colFormat(percent = TRUE, digits = 1))\n    )\n  )\n```\n\n"
+  }
+]

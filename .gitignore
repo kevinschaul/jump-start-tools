@@ -44,7 +44,7 @@ test/starters/dist
 
 public/screenshots
 
-stories/
+/src/stories
 
 *storybook.log
 
