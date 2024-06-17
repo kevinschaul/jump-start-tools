@@ -1,8 +1,8 @@
 import { join } from "node:path";
-import { cpSync, rmSync } from "node:fs";
 import { watch } from "chokidar";
-import { spawnWithIO, symlinkStarters } from "./util";
+import { copyJumpStartTools, spawnWithIO, symlinkStarters } from "./util";
 import updateStories from "../src/util/updateStories";
+import { Command } from "commander";
 const root = join(import.meta.dirname, "../");
 
 type StorybookOpts = {
@@ -10,17 +10,10 @@ type StorybookOpts = {
   noWatch: boolean;
 };
 
-const storybook = async (opts: StorybookOpts) => {
+const storybook = async (opts: StorybookOpts, command: Command) => {
   console.log(`Using startersDir: ${opts.startersDir}`);
 
-  // Copy jump-start-tools out of node_modules to avoid compilation errors with
-  // storybook
-  const toolsRoot = join(opts.startersDir, "./jump-start-tools");
-  console.log(`Copying ${root} to ${toolsRoot}`);
-  rmSync(toolsRoot, { recursive: true, force: true })
-  cpSync(root, toolsRoot, { recursive: true });
-  console.log(`Copy complete.`);
-
+  const toolsRoot = copyJumpStartTools(root, opts.startersDir);
   symlinkStarters(toolsRoot, opts.startersDir);
 
   // Rewrite stories now and any time a change is made to the starters
@@ -40,7 +33,8 @@ const storybook = async (opts: StorybookOpts) => {
     });
   }
 
-  // Start the storybook server
-  spawnWithIO("storybook", ["dev", "-p", "6006"], { cwd: toolsRoot });
+  // Start the storybook server, including any additional commands passed
+  // through
+  spawnWithIO("storybook", ["dev", "-p", "6006", ...command.args], { cwd: toolsRoot });
 };
 export default storybook;

@@ -57,7 +57,7 @@ it("storybook should generate stories .mdx files", async () => {
   console.log("Spawning child process");
   const childProcess = spawn(
     "./node_modules/.bin/jump-start",
-    ["storybook", "--starters-dir", "starters", "--no-watch"],
+    ["storybook", "--starters-dir", "starters", "--no-watch", "--", "--ci"],
     {
       cwd,
     },
@@ -77,7 +77,7 @@ it("storybook should generate stories .mdx files", async () => {
   setTimeout(() => {
     const story = "r/data-analysis/data-analysis.mdx";
     const actual = fileContents(
-      join(cwd, `starters/jump-start-tools/src/stories/${story}`),
+      join(cwd, `starters/.build/jump-start-tools/src/stories/${story}`),
     );
     const expected = fileContents(join(root, `test/expected/stories/${story}`));
 

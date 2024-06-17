@@ -5,7 +5,7 @@ import { cpSync, rmSync, symlinkSync, unlinkSync } from "node:fs";
 export function copyJumpStartTools(root: string, startersDir: string) {
   // Copy jump-start-tools out of node_modules to avoid compilation errors with
   // storybook
-  const toolsRoot = join(startersDir, "./jump-start-tools");
+  const toolsRoot = join(startersDir, "./.build/jump-start-tools");
   console.log(`Copying ${root} to ${toolsRoot}`);
   rmSync(toolsRoot, { recursive: true, force: true });
   cpSync(root, toolsRoot, { recursive: true });
