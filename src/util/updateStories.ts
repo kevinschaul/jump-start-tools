@@ -17,7 +17,7 @@ export default function updateStories(startersDir: string, storiesDir: string) {
   }
 
   const readme = fs.readFileSync(
-    path.join(import.meta.dirname, "../../README.md"),
+    path.join(startersDir, "README.md"),
     "utf-8",
   );
   const readmeWithoutStarters = rewriteReadmeSection(
