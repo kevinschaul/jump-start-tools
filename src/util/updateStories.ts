@@ -27,7 +27,7 @@ export default function updateStories(startersDir: string, storiesDir: string) {
   );
 
   // Write out an overview story
-  const outFileMdx = path.join(storiesDir, "../", "jump-start.mdx");
+  const outFileMdx = path.join(storiesDir, "./", "jump-start.mdx");
   const mdx = `
 import { Meta, Title } from '@storybook/blocks';
 
