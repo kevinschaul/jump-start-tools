@@ -10,16 +10,19 @@ const program = new Command();
 program
   .command("storybook")
   .description("Start the storybook server")
+  .addHelpText(
+    "after",
+    `
+
+Arguments passed following "--" are passed along to storybook, e.g.:
+  $ jump-start storybook -- --port 8000`,
+  )
   .option(
     "--starters-dir <dir>",
     "Directory where starters are. Defaults to cwd.",
     process.cwd(),
   )
-  .option(
-    "--no-watch",
-    "Don't watch for file changes",
-    process.cwd(),
-  )
+  .option("--no-watch", "Don't watch for file changes", process.cwd())
   .action(storybook);
 
 program
