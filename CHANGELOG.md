@@ -1,5 +1,5 @@
 ## main
-- _...Add new stuff here..._
+- Reenable dotenv in update-readme command
 
 ## 0.1.1 (6/17/2024)
 
