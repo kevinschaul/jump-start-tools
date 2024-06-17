@@ -39,10 +39,12 @@ next-env.d.ts
 # symlink to the starters when this repo is a submodule of a
 # jump-start repo
 src/starters
+src/starters.json
+test/starters/dist
 
 public/screenshots
 
-stories/
+/src/stories
 
 *storybook.log
 
