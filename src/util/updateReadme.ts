@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import "dotenv/config";
 import type { StarterGroupLookup } from "../types";
 import { getStarterCommand } from "./getStarterCommand";
 import { parseStarters } from "./parseStarters";
