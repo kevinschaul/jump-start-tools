@@ -1,5 +1,5 @@
 ## main
-- _...Add new stuff here..._
+- Update ws dependency to avoid DoS vulnerability
 
 ## 0.1.2 (6/17/2024)
 - Reenable dotenv in update-readme command
