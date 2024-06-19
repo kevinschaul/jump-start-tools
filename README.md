@@ -13,3 +13,6 @@ into a Storybook website. To view the website locally, navigate to your
 jump-start repo (or [mine, for example](https://github.com/kevinschaul/jump-start)), run
 `npm install` and then `npm run dev`.
 
+Alternatively, if this repo is next to your jump-start
+repo, you can just run `npm run dev` from this repo.
+

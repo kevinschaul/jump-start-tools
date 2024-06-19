@@ -7,6 +7,7 @@
     "jump-start": "bin/cli.ts"
   },
   "scripts": {
+    "dev": "./bin/cli.ts storybook --starters-dir ../jump-start",
     "test": "vitest"
   },
   "dependencies": {

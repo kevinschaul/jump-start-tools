@@ -1,7 +1,12 @@
 import type { StorybookConfig } from "@storybook/react-vite";
 
 const config: StorybookConfig = {
-  stories: ["../src/stories/**/*.mdx"],
+  stories: [
+    // Seems redundant, but this forces Storybook to
+    // default to the jump start index page
+    "../src/stories/*.mdx",
+    "../src/stories/**/*.mdx"
+  ],
   addons: [
     "@storybook/addon-onboarding",
     "@storybook/addon-links",
