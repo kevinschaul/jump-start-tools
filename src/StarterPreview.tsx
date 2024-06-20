@@ -4,6 +4,7 @@ import {
   SandpackPreview,
   SandpackCodeEditor,
   useSandpack,
+  SandpackFileExplorer,
 } from "@codesandbox/sandpack-react";
 import { useEffect, useState } from "react";
 import type { Starter, StarterFile } from "./types";
@@ -27,8 +28,7 @@ export default function StarterPreview({
     // Figure out which file to activate in the editor by default. It can be
     // specified in the jump-start.yaml, otherwise it defaults to the first file.
     const mainFile =
-      files.find((d) => d.path === starter.mainFile)?.path ||
-      files[0].path;
+      files.find((d) => d.path === starter.mainFile)?.path || files[0].path;
 
     const filesForSandpack = files.reduce((p, v) => {
       // Rewrite files into ./starter directory to avoid conflicts with
@@ -80,8 +80,12 @@ export default function StarterPreview({
           <hr />
           <h3>Starter files</h3>
           <SandpackLayout>
+            <SandpackFileExplorer
+              autoHiddenFiles={true}
+              style={{ height: "80svh" }}
+            />
             <SandpackCodeEditor
-              showTabs={true}
+              showTabs={false}
               showLineNumbers={true}
               style={{ width: "100%", height: "80svh" }}
             />

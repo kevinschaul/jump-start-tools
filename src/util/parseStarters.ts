@@ -46,12 +46,7 @@ export function getStarterFiles(dirPath: string): StarterFile[] {
     if (!["jump-start.yaml", "degit.json"].includes(file)) {
       const filePath = path.join(dirPath, file);
       const stats = fs.statSync(filePath);
-      if (stats.isDirectory()) {
-        out.push({
-          path: file,
-          type: "dir",
-        } as StarterFile);
-      } else {
+      if (stats.isFile()) {
         out.push({
           path: file,
           type: "file",

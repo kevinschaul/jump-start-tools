@@ -57,7 +57,7 @@ describe("getStarterFiles", () => {
   test("starter with subdirectory", () => {
     vol.reset();
     vol.fromNestedJSON({
-      ".": {
+      "/": {
         "jump-start.yaml": "description: tk",
         subdirectory: {
           "data.txt": "some data",
@@ -67,15 +67,11 @@ describe("getStarterFiles", () => {
 
     const expected: StarterFile[] = [
       {
-        path: "subdirectory/data.txt",
+        path: "/subdirectory/data.txt",
         type: "file",
         contents: "some data",
       },
-      {
-        path: "subdirectory",
-        type: "dir",
-      },
     ];
-    expect(getStarterFiles(".")).toStrictEqual(expected);
+    expect(getStarterFiles("/")).toStrictEqual(expected);
   });
 });
