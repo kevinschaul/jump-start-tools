@@ -3,12 +3,9 @@ import { globSync } from "glob";
 import path from "path";
 // @ts-ignore
 import yaml from "js-yaml";
-import type { File, Starter, StarterGroupLookup } from "../types";
+import type { StarterFile, Starter, StarterGroupLookup } from "../types";
 
-export function parseStarters(
-  dirPath: string,
-  includeFileData = false,
-): StarterGroupLookup {
+export function parseStarters(dirPath: string): StarterGroupLookup {
   const groups: StarterGroupLookup = {};
 
   const filePattern = path.join("./**", "jump-start.yaml");
@@ -32,10 +29,6 @@ export function parseStarters(
     fileData.title = title;
     fileData.group = group;
 
-    if (includeFileData) {
-      fileData.files = getStarterFiles(path.join(dirPath, dir));
-    }
-
     if (!(group in groups)) {
       groups[group] = [];
     }
@@ -45,9 +38,9 @@ export function parseStarters(
   return groups;
 }
 
-export function getStarterFiles(dirPath: string): File[] {
-  const files = fs.readdirSync(dirPath);
-  let out = [];
+export function getStarterFiles(dirPath: string): StarterFile[] {
+  const files = fs.readdirSync(dirPath, { encoding: "utf-8", recursive: true });
+  let out: StarterFile[] = [];
 
   for (const file of files) {
     if (!["jump-start.yaml", "degit.json"].includes(file)) {
@@ -57,13 +50,13 @@ export function getStarterFiles(dirPath: string): File[] {
         out.push({
           path: file,
           type: "dir",
-        } as File);
+        } as StarterFile);
       } else {
         out.push({
           path: file,
           type: "file",
           contents: fs.readFileSync(filePath, "utf8"),
-        } as File);
+        } as StarterFile);
       }
     }
   }
