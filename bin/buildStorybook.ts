@@ -22,6 +22,6 @@ const buildStorybook = async (opts: BuildStorybookOpts) => {
   // Build the site
   const outDir = join(opts.startersDir, "dist")
   console.log(`Building site to ${outDir}`);
-  spawnWithIO("storybook", ["build", "--ci", "--output-dir", outDir], { cwd: toolsRoot });
+  spawnWithIO("storybook", ["build", "--output-dir", outDir], { cwd: toolsRoot });
 };
 export default buildStorybook;
