@@ -3,7 +3,7 @@ export type StarterPreviewConfig = {
   dependencies?: { [name: string]: [version: string] };
 };
 
-export type File = {
+export type StarterFile = {
   path: string;
   // TODO this would be better but it's giving errors
   // type: "dir" | "file";
@@ -20,7 +20,7 @@ export type Starter = {
   defaultDir?: string;
   mainFile?: string;
   preview?: StarterPreviewConfig;
-  files?: File[];
+  files?: StarterFile[];
 };
 
 export type StarterGroupLookup = {

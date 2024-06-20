@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "./bin/cli.ts storybook --starters-dir ../jump-start",
+    "build": "./bin/cli.ts build-storybook --starters-dir ../jump-start",
     "test": "vitest"
   },
   "dependencies": {
