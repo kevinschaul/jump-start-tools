@@ -35,6 +35,6 @@ const storybook = async (opts: StorybookOpts, command: Command) => {
 
   // Start the storybook server, including any additional commands passed
   // through
-  spawnWithIO("storybook", ["dev", "-p", "6006", ...command.args], { cwd: toolsRoot });
+  spawnWithIO("storybook", ["dev", "--ci", "-p", "6006", ...command.args], { cwd: toolsRoot });
 };
 export default storybook;

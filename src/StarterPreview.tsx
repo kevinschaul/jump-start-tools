@@ -4,11 +4,18 @@ import {
   SandpackPreview,
   SandpackCodeEditor,
   useSandpack,
+  SandpackFileExplorer,
 } from "@codesandbox/sandpack-react";
 import { useEffect, useState } from "react";
-import type { Starter } from "./types";
+import type { Starter, StarterFile } from "./types";
 
-export default function StarterPreview({ starter }: { starter: Starter }) {
+export default function StarterPreview({
+  starter,
+  files,
+}: {
+  starter: Starter;
+  files: StarterFile[];
+}) {
   // Show in html whether the preview has rendered yet. Useful for taking
   // screenshots of the previews.
   const [hasPreviewRendered, setHasPreviewRendered] = useState(false);
@@ -17,14 +24,13 @@ export default function StarterPreview({ starter }: { starter: Starter }) {
   const renderPreview = !!starter.preview;
   const previewConfig = starter.preview;
 
-  if (starter.files) {
+  if (files) {
     // Figure out which file to activate in the editor by default. It can be
     // specified in the jump-start.yaml, otherwise it defaults to the first file.
     const mainFile =
-      starter.files.find((d) => d.path === starter.mainFile)?.path ||
-      starter.files[0].path;
+      files.find((d) => d.path === starter.mainFile)?.path || files[0].path;
 
-    const filesForSandpack = starter.files.reduce((p, v) => {
+    const filesForSandpack = files.reduce((p, v) => {
       // Rewrite files into ./starter directory to avoid conflicts with
       // codesandbox's "index.js"
       p[`/starter/${v.path}`] = {
@@ -74,8 +80,12 @@ export default function StarterPreview({ starter }: { starter: Starter }) {
           <hr />
           <h3>Starter files</h3>
           <SandpackLayout>
+            <SandpackFileExplorer
+              autoHiddenFiles={true}
+              style={{ height: "80svh" }}
+            />
             <SandpackCodeEditor
-              showTabs={true}
+              showTabs={false}
               showLineNumbers={true}
               style={{ width: "100%", height: "80svh" }}
             />

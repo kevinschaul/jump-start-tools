@@ -8,7 +8,7 @@ export default function updateStories(startersDir: string, storiesDir: string) {
   // Delete existing stories
   fs.rmSync(storiesDir, { recursive: true, force: true });
 
-  const groups = parseStarters(startersDir, true);
+  const groups = parseStarters(startersDir);
 
   try {
     fs.mkdirSync(storiesDir, { recursive: true });
@@ -84,7 +84,7 @@ ${starter.description}
 ${getStarterCommand(starter, process.env.GITHUB_USERNAME, process.env.GITHUB_REPO, process.env.DEGIT_MODE)}
 \`\`\`
 
-<StarterPreview starter={starter} />
+<StarterPreview starter={starter} files={files} />
 `;
       fs.writeFileSync(outFileMdx, mdx);
     }
