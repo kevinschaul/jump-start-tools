@@ -84,7 +84,7 @@ ${starter.description}
 ${getStarterCommand(starter, process.env.GITHUB_USERNAME, process.env.GITHUB_REPO, process.env.DEGIT_MODE)}
 \`\`\`
 
-<StarterPreview starter={starter} />
+<StarterPreview starter={starter} files={files} />
 `;
       fs.writeFileSync(outFileMdx, mdx);
     }
