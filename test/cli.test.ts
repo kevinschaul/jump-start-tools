@@ -7,7 +7,7 @@ import { tmpdir } from "os";
 const root = join(import.meta.dirname, "../");
 
 const runCommand = (command: string, cwd = process.cwd()) => {
-  // console.log(`running ${command}`);
+  console.log(`running ${command}`);
   return execSync(command, { timeout: 10000, cwd: cwd }).toString();
 };
 
@@ -51,12 +51,12 @@ describe("jump-start help", () => {
 
 it("storybook should generate stories .mdx files", async () => {
   const cwd = setupTmpdir();
-  // console.log(`Running test in ${cwd}`);
+  console.log(`Running test in ${cwd}`);
 
   runCommand(`npm install ${root}`, cwd);
   runCommand(`cp -r ${root}/test/starters ./starters`, cwd);
 
-  // console.log("Spawning child process");
+  console.log("Spawning child process");
   const childProcess = spawn(
     "./node_modules/.bin/jump-start",
     ["storybook", "--starters-dir", "starters", "--no-watch", "--", "--ci"],
@@ -67,12 +67,12 @@ it("storybook should generate stories .mdx files", async () => {
 
   // Kill the process after 10 seconds
   setTimeout(() => {
-    // console.log("Killing child process");
+    console.log("Killing child process");
     childProcess.kill("SIGKILL");
   }, 10000);
 
   const [stdout, stderr] = await collectProcessOutput(childProcess);
-  // console.log(stdout, stderr);
+  console.log(stdout, stderr);
 
   // Honestly no idea why another setTimeout is needed but otherwise the
   // stories files do not exist yet
@@ -89,12 +89,12 @@ it("storybook should generate stories .mdx files", async () => {
 
 it("build-storybook should generate the site", async () => {
   const cwd = setupTmpdir();
-  // console.log(`Running test in ${cwd}`);
+  console.log(`Running test in ${cwd}`);
 
   runCommand(`npm install ${root}`, cwd);
   runCommand(`cp -r ${root}/test/starters ./starters`, cwd);
 
-  // console.log("Spawning child process");
+  console.log("Spawning child process");
   const childProcess = spawn(
     "./node_modules/.bin/jump-start",
     ["build-storybook", "--starters-dir", "starters"],
@@ -104,7 +104,7 @@ it("build-storybook should generate the site", async () => {
   );
 
   const [stdout, stderr] = await collectProcessOutput(childProcess);
-  // console.log(stdout, stderr);
+  console.log(stdout, stderr);
 
   expect(stdout).toContain("Preview built");
 }, 20000);
