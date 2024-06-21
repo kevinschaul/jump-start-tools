@@ -22,7 +22,9 @@ Arguments passed following "--" are passed along to storybook, e.g.:
     "Directory where starters are. Defaults to cwd.",
     process.cwd(),
   )
-  .option("--no-watch", "Don't watch for file changes", process.cwd())
+  .option("--no-watch", "Don't watch for file changes")
+  .option("--update-images", "Update the preview images", false)
+  .option("--no-update-images", "Don't update the preview images", true)
   .action(storybook);
 
 program
@@ -33,6 +35,8 @@ program
     "Directory where starters are. Defaults to cwd.",
     process.cwd(),
   )
+  .option("--update-images", "Update the preview images", true)
+  .option("--no-update-images", "Don't update the preview images", false)
   .action(buildStorybook);
 
 program
@@ -44,15 +48,5 @@ program
     process.cwd(),
   )
   .action(updateReadme);
-
-// TODO
-// program
-//   .command("update-screenshots")
-//   .option(
-//     "--starters-dir <dir>",
-//     "Directory where starters are. Defaults to cwd.",
-//     process.cwd(),
-//   )
-//   .action(updateScreenshots);
 
 program.parse();

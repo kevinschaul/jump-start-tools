@@ -5,8 +5,9 @@ const config: StorybookConfig = {
     // Seems redundant, but this forces Storybook to
     // default to the jump start index page
     "../src/stories/*.mdx",
-    "../src/stories/**/*.mdx"
+    "../src/stories/**/*.mdx",
   ],
+  staticDirs: ["../src/stories/assets"],
   addons: [
     "@storybook/addon-onboarding",
     "@storybook/addon-links",

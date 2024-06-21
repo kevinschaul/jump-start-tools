@@ -12,18 +12,24 @@ export default function updateStories(startersDir: string, storiesDir: string) {
 
   try {
     fs.mkdirSync(storiesDir, { recursive: true });
+    fs.mkdirSync(path.join(storiesDir, "assets"), { recursive: true });
   } catch (e) {
     null;
   }
 
-  const readme = fs.readFileSync(
-    path.join(startersDir, "README.md"),
-    "utf-8",
-  );
+  const startersWithPreviews = Object.values(groups)
+    .flat()
+    .filter((d) => d.preview);
+
+  const startersWithPreviewsMd = startersWithPreviews.map((starter) => {
+    return `![Preview of ${starter.group}/${starter.title}](${starter.group}/${starter.title}.png)`;
+  });
+
+  const readme = fs.readFileSync(path.join(startersDir, "README.md"), "utf-8");
   const readmeWithoutStarters = rewriteReadmeSection(
     readme,
     "## Starters",
-    "View available starters on the left",
+    `View available starters on the left\n\n${startersWithPreviewsMd}`,
   );
 
   // Write out an overview story
