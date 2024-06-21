@@ -1,6 +1,14 @@
 ## main
 - Update ws dependency to avoid DoS vulnerability
 
+## [0.1.4](https://github.com/kevinschaul/jump-start-tools/compare/v0.1.3...v0.1.4) (2024-06-21)
+
+
+### Bug Fixes
+
+* fix folders in preview ([#10](https://github.com/kevinschaul/jump-start-tools/issues/10)) ([9ebd5d7](https://github.com/kevinschaul/jump-start-tools/commit/9ebd5d7902547b2ace6dc4898e9405cadc41d4f6))
+* remove --ci from storybook build ([dacdf1b](https://github.com/kevinschaul/jump-start-tools/commit/dacdf1b36b9bf45265ee3878ba182349b8c87ace))
+
 ## 0.1.3 (2024-06-20)
 
 
