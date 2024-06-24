@@ -1,6 +1,18 @@
 ## main
 - Update ws dependency to avoid DoS vulnerability
 
+## [0.2.0-rc.1](https://github.com/kevinschaul/jump-start-tools/compare/v0.1.4...v0.2.0-rc.1) (2024-06-24)
+
+
+### Features
+
+* add preview images to storybook ([#13](https://github.com/kevinschaul/jump-start-tools/issues/13)) ([c4c0880](https://github.com/kevinschaul/jump-start-tools/commit/c4c08804145bba05d0fef22c886ce6d02b0796b2))
+
+
+### Miscellaneous Chores
+
+* release 0.2.0-rc.1 ([543b32a](https://github.com/kevinschaul/jump-start-tools/commit/543b32accdddcf2d451adf64fa1ea8a5a119e4da))
+
 ## [0.1.4](https://github.com/kevinschaul/jump-start-tools/compare/v0.1.3...v0.1.4) (2024-06-21)
 
 
