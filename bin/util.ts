@@ -1,11 +1,15 @@
 import { join } from "node:path";
-import { spawn } from "node:child_process";
+import { SpawnOptions, spawn } from "node:child_process";
 import { cpSync, rmSync, symlinkSync, unlinkSync } from "node:fs";
+
+export function getToolsRoot(startersDir: string) {
+  return join(startersDir, "./.build/jump-start-tools");
+}
 
 export function copyJumpStartTools(root: string, startersDir: string) {
   // Copy jump-start-tools out of node_modules to avoid compilation errors with
   // storybook
-  const toolsRoot = join(startersDir, "./.build/jump-start-tools");
+  const toolsRoot = getToolsRoot(startersDir);
   console.log(`Copying ${root} to ${toolsRoot}`);
   rmSync(toolsRoot, { recursive: true, force: true });
   cpSync(root, toolsRoot, { recursive: true });
@@ -22,19 +26,21 @@ export function symlinkStarters(root: string, startersDir: string) {
   symlinkSync(startersDir, symlinkPath);
 }
 
-export function spawnWithIO(command: string, args: string[], options) {
+export function spawnWithIO(command: string, args: string[], options: SpawnOptions) {
   console.log("Starting server");
   const child = spawn(command, args, options);
 
-  child.stdout.on("data", (data) => {
+  child.stdout?.on("data", (data) => {
     process.stdout.write(data);
   });
 
-  child.stderr.on("data", (data) => {
+  child.stderr?.on("data", (data) => {
     process.stderr.write(data);
   });
 
   child.on("close", (code) => {
     console.log(`child process exited with code ${code}`);
   });
+
+  return child
 }

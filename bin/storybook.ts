@@ -3,11 +3,13 @@ import { watch } from "chokidar";
 import { copyJumpStartTools, spawnWithIO, symlinkStarters } from "./util";
 import updateStories from "../src/util/updateStories";
 import { Command } from "commander";
+import updateScreenshots from "../src/util/updateScreenshots";
 const root = join(import.meta.dirname, "../");
 
 type StorybookOpts = {
   startersDir: string;
   noWatch: boolean;
+  updateImages: boolean;
 };
 
 const storybook = async (opts: StorybookOpts, command: Command) => {
@@ -17,10 +19,10 @@ const storybook = async (opts: StorybookOpts, command: Command) => {
   symlinkStarters(toolsRoot, opts.startersDir);
 
   // Rewrite stories now and any time a change is made to the starters
-  console.log('Updating stories')
+  console.log("Updating stories");
   const storiesDir = join(toolsRoot, "./src/stories");
   updateStories(opts.startersDir, storiesDir);
-  console.log('Update stories complete.')
+  console.log("Update stories complete.");
 
   if (!opts.noWatch) {
     const watcher = watch(opts.startersDir, {
@@ -35,6 +37,20 @@ const storybook = async (opts: StorybookOpts, command: Command) => {
 
   // Start the storybook server, including any additional commands passed
   // through
-  spawnWithIO("storybook", ["dev", "--ci", "-p", "6006", ...command.args], { cwd: toolsRoot });
+  const child = spawnWithIO(
+    "storybook",
+    ["dev", "--ci", "-p", "6006", ...command.args],
+    { cwd: toolsRoot },
+  );
+
+  if (opts.updateImages) {
+    // When the dev server logs that storybook has started, call
+    // updateScreenshots
+    child.stdout?.on("data", (data) => {
+      if (/Storybook .* started/.test(data.toString())) {
+        updateScreenshots(opts.startersDir, storiesDir);
+      }
+    });
+  }
 };
 export default storybook;
