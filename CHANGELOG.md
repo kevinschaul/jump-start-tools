@@ -1,6 +1,14 @@
 ## main
 - Update ws dependency to avoid DoS vulnerability
 
+## [0.2.0-rc.2](https://github.com/kevinschaul/jump-start-tools/compare/v0.2.0-rc.1...v0.2.0-rc.2) (2024-06-25)
+
+
+### Miscellaneous Chores
+
+* release 0.2.0-rc.1 ([79068bf](https://github.com/kevinschaul/jump-start-tools/commit/79068bfe013e3ca6163c46fea2b1cf51c6f68632))
+* release 0.2.0-rc.2 ([56f9e80](https://github.com/kevinschaul/jump-start-tools/commit/56f9e804d37f76e618fee2baf266330306f78470))
+
 ## [0.2.0-rc.1](https://github.com/kevinschaul/jump-start-tools/compare/v0.1.4...v0.2.0-rc.1) (2024-06-24)
 
 
