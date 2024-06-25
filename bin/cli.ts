@@ -45,14 +45,4 @@ program
   )
   .action(updateReadme);
 
-// TODO
-// program
-//   .command("update-screenshots")
-//   .option(
-//     "--starters-dir <dir>",
-//     "Directory where starters are. Defaults to cwd.",
-//     process.cwd(),
-//   )
-//   .action(updateScreenshots);
-
 program.parse();
