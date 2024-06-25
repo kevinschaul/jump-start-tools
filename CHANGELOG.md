@@ -1,6 +1,13 @@
 ## main
 - Update ws dependency to avoid DoS vulnerability
 
+## [0.1.5](https://github.com/kevinschaul/jump-start-tools/compare/v0.1.4...v0.1.5) (2024-06-25)
+
+
+### Bug Fixes
+
+* remove unnecessary symlink step ([684429b](https://github.com/kevinschaul/jump-start-tools/commit/684429b29f5f55491a22d46692b7d6015665840e))
+
 ## [0.1.4](https://github.com/kevinschaul/jump-start-tools/compare/v0.1.3...v0.1.4) (2024-06-21)
 
 
