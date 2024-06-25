@@ -23,6 +23,7 @@ jobs:
       - uses: actions/setup-node@v4
         if: ${{ steps.release.outputs.release_created }}
         with:
+          registry-url: 'https://registry.npmjs.org/'
           node-version: 20
       - run: npm ci
         if: ${{ steps.release.outputs.release_created }}
