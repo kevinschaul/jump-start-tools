@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { spawn } from "node:child_process";
-import { copyJumpStartTools, spawnWithIO, symlinkStarters } from "./util";
+import { copyJumpStartTools, spawnWithIO } from "./util";
 import updateStories from "../src/util/updateStories";
 import updateScreenshots from "../src/util/updateScreenshots";
 const root = join(import.meta.dirname, "../");
@@ -40,7 +40,6 @@ const buildStorybook = async (opts: BuildStorybookOpts) => {
   console.log(`Using startersDir: ${opts.startersDir}`);
 
   const toolsRoot = copyJumpStartTools(root, opts.startersDir);
-  symlinkStarters(toolsRoot, opts.startersDir);
 
   // Rewrite stories now
   console.log("Updating stories");

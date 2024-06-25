@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { watch } from "chokidar";
-import { copyJumpStartTools, spawnWithIO, symlinkStarters } from "./util";
+import { copyJumpStartTools, spawnWithIO } from "./util";
 import updateStories from "../src/util/updateStories";
 import { Command } from "commander";
 import updateScreenshots from "../src/util/updateScreenshots";
@@ -16,7 +16,6 @@ const storybook = async (opts: StorybookOpts, command: Command) => {
   console.log(`Using startersDir: ${opts.startersDir}`);
 
   const toolsRoot = copyJumpStartTools(root, opts.startersDir);
-  symlinkStarters(toolsRoot, opts.startersDir);
 
   // Rewrite stories now and any time a change is made to the starters
   console.log("Updating stories");
