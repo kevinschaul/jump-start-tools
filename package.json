@@ -1,6 +1,6 @@
 {
   "name": "jump-start-tools",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "The gallery app for jump-start: A shortcut to your favorite code",
   "type": "module",
   "bin": {
