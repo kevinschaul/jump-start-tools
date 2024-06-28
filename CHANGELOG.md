@@ -1,6 +1,13 @@
 ## main
 - Update ws dependency to avoid DoS vulnerability
 
+## [0.1.6](https://github.com/kevinschaul/jump-start-tools/compare/v0.1.5...v0.1.6) (2024-06-28)
+
+
+### Bug Fixes
+
+* improve formatting of starters in readme ([d81cf63](https://github.com/kevinschaul/jump-start-tools/commit/d81cf6348c88cfa35d71451d7cc0ea12c58f3db3))
+
 ## [0.1.5](https://github.com/kevinschaul/jump-start-tools/compare/v0.1.4...v0.1.5) (2024-06-25)
 
 
