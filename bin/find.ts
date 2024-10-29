@@ -36,38 +36,54 @@ export const executeRipgrep = async (
 ) => {
   const matchingStarters = new Set<MatchingStarter>();
   // Search in both file contents and paths
-  let args: string[] = ["--glob", "!node_modules"];
-
+  let contentArgs: string[] = ["--glob", "!node_modules"];
+  
   if (opts.text) {
-    args.push("-tyaml");
+    // For text search, look in yaml files
+    contentArgs.push("-tyaml");
+  } else if (opts.code) {
+    // For code search, look in all code files
+    contentArgs = [
+      ...contentArgs,
+      "-tjs",
+      "-tts",
+      "-tpy",
+      "-tr",
+      "-tjson",
+      "-thtml",
+      "-tcss",
+      "-tmd",
+      "-tsh",
+      "-tbash",
+      "-tzsh",
+      "-tMakefile",
+    ];
   }
 
-  // Add path search if enabled
-  if (opts.code) {
-    args.push("--glob");
-  }
-
-  args.push(searchTerm);
-  args.push(instance.path);
+  contentArgs.push(searchTerm);
+  contentArgs.push(instance.path);
 
   return new Promise<void>((resolve, reject) => {
     // Execute content search
-    const contentChild = spawn("rg", args);
+    const contentChild = spawn("rg", contentArgs);
 
-    // Execute path search
-    const pathChild = spawn("rg", [
+    // For text search, also search filepaths
+    const pathArgs = opts.text ? [
       "--glob",
       "!node_modules",
       "--files",
       "--glob",
       `*${searchTerm}*`,
       instance.path,
-    ]);
+    ] : null;
 
+    const pathChild = pathArgs ? spawn("rg", pathArgs) : null;
+
+    const totalProcesses = pathChild ? 2 : 1;
     let completedProcesses = 0;
     const checkComplete = () => {
       completedProcesses++;
-      if (completedProcesses === 2) {
+      if (completedProcesses === totalProcesses) {
         resolve();
       }
     };
@@ -81,20 +97,30 @@ export const executeRipgrep = async (
       }
     });
 
-    // Handle path search results
-    pathChild.stdout?.on("data", (data) => {
-      const starter = handleRgStdout({ instance, data });
-      if (!matchingStarters.has(starter)) {
-        matchingStarters.add(starter);
-        onMatch(starter);
-      }
-    });
+    // Handle path search results if path search is enabled
+    if (pathChild) {
+      pathChild.stdout?.on("data", (data) => {
+        const starter = handleRgStdout({ instance, data });
+        if (!matchingStarters.has(starter)) {
+          matchingStarters.add(starter);
+          onMatch(starter);
+        }
+      });
+
+      pathChild.stderr?.on("data", (data) => {
+        process.stderr.write(data);
+      });
+
+      pathChild.on("close", (code) => {
+        if (code !== 0 && code !== 1) {
+          // 1 means no matches found
+          reject(new Error(`ripgrep path search exited with code ${code}`));
+        }
+        checkComplete();
+      });
+    }
 
     contentChild.stderr?.on("data", (data) => {
-      process.stderr.write(data);
-    });
-
-    pathChild.stderr?.on("data", (data) => {
       process.stderr.write(data);
     });
 
@@ -102,14 +128,6 @@ export const executeRipgrep = async (
       if (code !== 0 && code !== 1) {
         // 1 means no matches found
         reject(new Error(`ripgrep content search exited with code ${code}`));
-      }
-      checkComplete();
-    });
-
-    pathChild.on("close", (code) => {
-      if (code !== 0 && code !== 1) {
-        // 1 means no matches found
-        reject(new Error(`ripgrep path search exited with code ${code}`));
       }
       checkComplete();
     });
