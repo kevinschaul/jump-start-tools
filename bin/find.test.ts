@@ -26,7 +26,8 @@ describe("find functionality", () => {
       "/home/test/starters/.github/workflows/test.yml",
       "/home/test/starters/.build/cache.txt",
       "/home/test/starters/single-level.txt",
-      "/home/test/starters/dist/bundle.js"
+      "/home/test/starters/dist/bundle.js",
+      "/home/test/starters/github-actions/workflow.yml"
     ];
 
     invalidPaths.forEach(testPath => {

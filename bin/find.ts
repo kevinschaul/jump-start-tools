@@ -29,7 +29,7 @@ export const handleRgStdout = ({
   if (parts.length < 2) return null;
   
   // Skip if first part is a special directory
-  const invalidDirs = ['node_modules', '.github', '.build', 'dist', 'build'];
+  const invalidDirs = ['node_modules', '.github', '.build', 'dist', 'build', 'github-actions'];
   if (invalidDirs.includes(parts[0])) return null;
   
   const group = parts[0];
