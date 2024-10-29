@@ -20,12 +20,30 @@ describe("find functionality", () => {
     mockSpawn.mockClear();
   });
 
+  it("returns null for invalid directory structures", () => {
+    const invalidPaths = [
+      "/home/test/starters/node_modules/something/file.txt",
+      "/home/test/starters/.github/workflows/test.yml",
+      "/home/test/starters/.build/cache.txt",
+      "/home/test/starters/single-level.txt",
+      "/home/test/starters/dist/bundle.js"
+    ];
+
+    invalidPaths.forEach(testPath => {
+      const result = handleRgStdout({
+        instance,
+        data: testPath
+      });
+      expect(result).toBeNull();
+    });
+  });
+
   const instance: Instance = {
     username: "test-user",
     path: "/home/test/starters",
   };
 
-  it("correctly parses ripgrep content output", () => {
+  it("correctly parses valid ripgrep content output", () => {
     const testData =
       "/home/test/starters/python/script/jump-start.yaml:1:description: A basic Python script";
 
