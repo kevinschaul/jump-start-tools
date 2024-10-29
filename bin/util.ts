@@ -17,7 +17,6 @@ export function spawnWithIO(
   args: string[],
   options: SpawnOptions,
 ) {
-  console.log("Starting server");
   const child = spawn(command, args, options);
 
   child.stdout?.on("data", (data) => {

@@ -1,11 +1,23 @@
 #!/usr/bin/env -S npx tsx
 
 import { Command } from "commander";
+import { Config } from "./config";
+import find from "./find";
 import storybook from "./storybook";
 import buildStorybook from "./buildStorybook";
 import updateReadme from "./updateReadme";
 
 const program = new Command();
+
+const config = new Config("jump-start").load();
+
+program
+  .command("find")
+  .description("Search your installed starters")
+  .option("--text", "Search the starter text", true)
+  .option("--code", "Search the starter code", false)
+  .argument("<search-term>")
+  .action(find.bind(null, config));
 
 program
   .command("storybook")
@@ -44,5 +56,15 @@ program
     process.cwd(),
   )
   .action(updateReadme);
+
+// TODO
+// program
+//   .command("update-screenshots")
+//   .option(
+//     "--starters-dir <dir>",
+//     "Directory where starters are. Defaults to cwd.",
+//     process.cwd(),
+//   )
+//   .action(updateScreenshots);
 
 program.parse();
