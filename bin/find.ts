@@ -23,7 +23,10 @@ export const handleRgStdout = ({
 }) => {
   const fullPath = data.toString().split(":")[0];
   const starterPath = path.relative(instance.path, fullPath);
-  const [group, starter] = starterPath.split(path.sep);
+  const parts = starterPath.split(path.sep);
+  // The first part is the group, the second part is the starter name
+  const group = parts[0];
+  const starter = parts[1];
   const pathToStarter = path.join(instance.path, group, starter);
   return { path: pathToStarter, group, starter };
 };
@@ -34,7 +37,7 @@ export const executeRipgrep = async (
   opts: FindOpts,
   onMatch: (starter: MatchingStarter) => void,
 ) => {
-  const matchingStarters = new Set<MatchingStarter>();
+  const matchingStarters = new Map<string, MatchingStarter>();
   // Search in both file contents and paths
   let contentArgs: string[] = ["--glob", "!node_modules"];
   
@@ -91,8 +94,9 @@ export const executeRipgrep = async (
     // Handle content search results
     contentChild.stdout?.on("data", (data) => {
       const starter = handleRgStdout({ instance, data });
-      if (!matchingStarters.has(starter)) {
-        matchingStarters.add(starter);
+      const key = `${starter.group}/${starter.starter}`;
+      if (!matchingStarters.has(key)) {
+        matchingStarters.set(key, starter);
         onMatch(starter);
       }
     });
@@ -101,8 +105,9 @@ export const executeRipgrep = async (
     if (pathChild) {
       pathChild.stdout?.on("data", (data) => {
         const starter = handleRgStdout({ instance, data });
-        if (!matchingStarters.has(starter)) {
-          matchingStarters.add(starter);
+        const key = `${starter.group}/${starter.starter}`;
+        if (!matchingStarters.has(key)) {
+          matchingStarters.set(key, starter);
           onMatch(starter);
         }
       });
