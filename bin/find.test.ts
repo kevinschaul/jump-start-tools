@@ -3,9 +3,16 @@ import { handleRgStdout, executeRipgrep } from "./find";
 import { Instance } from "./config";
 
 const mockSpawn = vi.fn().mockReturnValue({
-  stdout: { on: vi.fn() },
-  stderr: { on: vi.fn() },
+  stdout: { 
+    on: vi.fn(),
+    removeListener: vi.fn()
+  },
+  stderr: { 
+    on: vi.fn(),
+    removeListener: vi.fn()
+  },
   on: (event: string, cb: (code: number) => void) => cb(0),
+  removeAllListeners: vi.fn()
 });
 
 vi.mock("node:child_process", () => ({
@@ -207,8 +214,16 @@ describe("find functionality", () => {
     
     // Mock process with removeAllListeners
     const mockProcess = {
-      stdout: { on: vi.fn(), removeAllListeners: mockRemoveAllListeners },
-      stderr: { on: vi.fn(), removeAllListeners: mockRemoveAllListeners },
+      stdout: { 
+        on: vi.fn(), 
+        removeListener: mockRemoveAllListeners,
+        removeAllListeners: mockRemoveAllListeners 
+      },
+      stderr: { 
+        on: vi.fn(),
+        removeListener: mockRemoveAllListeners,
+        removeAllListeners: mockRemoveAllListeners
+      },
       on: (event: string, cb: (code: number) => void) => cb(0),
       removeAllListeners: mockRemoveAllListeners
     };
