@@ -38,19 +38,20 @@ describe("find functionality", () => {
     });
   });
 
-  it("executes ripgrep with correct arguments", async () => {
-    const mockSpawn = vi.fn().mockReturnValue({
-      stdout: { on: vi.fn() },
-      stderr: { on: vi.fn() },
-      on: (event: string, cb: (code: number) => void) => cb(0)
-    });
-    
-    vi.mock('node:child_process', () => ({
-      default: {
-        spawn: (...args: any[]) => mockSpawn(...args)
-      },
+  const mockSpawn = vi.fn().mockReturnValue({
+    stdout: { on: vi.fn() },
+    stderr: { on: vi.fn() },
+    on: (event: string, cb: (code: number) => void) => cb(0)
+  });
+
+  vi.mock('node:child_process', () => ({
+    default: {
       spawn: (...args: any[]) => mockSpawn(...args)
-    }));
+    },
+    spawn: (...args: any[]) => mockSpawn(...args)
+  }));
+
+  it("executes ripgrep with correct arguments", async () => {
 
     const onMatch = vi.fn();
     await executeRipgrep(instance, "test", { text: true, code: true, startersDir: "" }, onMatch);
