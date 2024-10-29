@@ -61,17 +61,24 @@ describe("find functionality", () => {
       onMatch,
     );
 
-    expect(mockSpawn).toHaveBeenCalledWith(
-      "rg",
-      expect.arrayContaining([
-        "--glob",
-        "!node_modules",
-        "-tyaml",
-        "--files-with-matches",
-        "test",
-        "/home/test/starters",
-      ]),
-    );
+    // Verify content search call
+    expect(mockSpawn).toHaveBeenCalledWith("rg", [
+      "--glob",
+      "!node_modules",
+      "-tyaml",
+      "test",
+      "/home/test/starters",
+    ]);
+
+    // Verify path search call
+    expect(mockSpawn).toHaveBeenCalledWith("rg", [
+      "--glob",
+      "!node_modules",
+      "--files",
+      "--glob",
+      "*test*",
+      "/home/test/starters",
+    ]);
   });
 
   it("handles multiple matches from the same directory", async () => {
