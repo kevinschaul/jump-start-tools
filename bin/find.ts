@@ -32,19 +32,19 @@ export const executeRipgrep = async (
   instance: Instance,
   searchTerm: string,
   opts: FindOpts,
-  onMatch: (starter: MatchingStarter) => void
+  onMatch: (starter: MatchingStarter) => void,
 ) => {
   const matchingStarters = new Set<MatchingStarter>();
   // Search in both file contents and paths
   let args: string[] = ["--glob", "!node_modules"];
-  
+
   if (opts.text) {
     args.push("-tyaml");
   }
 
   // Add path search if enabled
   if (opts.code) {
-    args.push("--files-with-matches");
+    args.push("--glob");
   }
 
   args.push(searchTerm);
@@ -53,13 +53,15 @@ export const executeRipgrep = async (
   return new Promise<void>((resolve, reject) => {
     // Execute content search
     const contentChild = spawn("rg", args);
-    
+
     // Execute path search
     const pathChild = spawn("rg", [
-      "--glob", "!node_modules",
+      "--glob",
+      "!node_modules",
       "--files",
-      "--glob", `*${searchTerm}*`,
-      instance.path
+      "--glob",
+      `*${searchTerm}*`,
+      instance.path,
     ]);
 
     let completedProcesses = 0;
@@ -97,19 +99,20 @@ export const executeRipgrep = async (
     });
 
     contentChild.on("close", (code) => {
-      if (code !== 0 && code !== 1) { // 1 means no matches found
+      if (code !== 0 && code !== 1) {
+        // 1 means no matches found
         reject(new Error(`ripgrep content search exited with code ${code}`));
       }
       checkComplete();
     });
 
     pathChild.on("close", (code) => {
-      if (code !== 0 && code !== 1) { // 1 means no matches found
+      if (code !== 0 && code !== 1) {
+        // 1 means no matches found
         reject(new Error(`ripgrep path search exited with code ${code}`));
       }
       checkComplete();
     });
-
   });
 };
 
@@ -117,9 +120,9 @@ const find = async (config: Settings, searchTerm: string, opts: FindOpts) => {
   const promises = config.instances.map((instance) =>
     executeRipgrep(instance, searchTerm, opts, (starter) => {
       process.stdout.write(
-        [starter.path, starter.group, starter.starter].join("\t") + "\n"
+        [starter.path, starter.group, starter.starter].join("\t") + "\n",
       );
-    })
+    }),
   );
 
   await Promise.all(promises);
