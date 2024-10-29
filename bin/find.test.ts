@@ -200,4 +200,38 @@ describe("find functionality", () => {
     // No path search should be executed for code search
     expect(mockSpawn).toHaveBeenCalledTimes(1);
   });
+
+  it("cleans up event listeners when called repeatedly", async () => {
+    const onMatch = vi.fn();
+    const mockRemoveAllListeners = vi.fn();
+    
+    // Mock process with removeAllListeners
+    const mockProcess = {
+      stdout: { on: vi.fn(), removeAllListeners: mockRemoveAllListeners },
+      stderr: { on: vi.fn(), removeAllListeners: mockRemoveAllListeners },
+      on: (event: string, cb: (code: number) => void) => cb(0),
+      removeAllListeners: mockRemoveAllListeners
+    };
+
+    mockSpawn.mockReturnValue(mockProcess);
+
+    // Call executeRipgrep multiple times
+    await executeRipgrep(
+      instance,
+      "test",
+      { text: false, code: true, startersDir: "" },
+      onMatch
+    );
+
+    await executeRipgrep(
+      instance,
+      "test",
+      { text: false, code: true, startersDir: "" },
+      onMatch
+    );
+
+    // Verify removeAllListeners was called for each process component
+    expect(mockRemoveAllListeners).toHaveBeenCalled();
+    expect(mockRemoveAllListeners.mock.calls.length).toBeGreaterThan(0);
+  });
 });

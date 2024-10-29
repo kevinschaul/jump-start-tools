@@ -99,6 +99,17 @@ export const executeRipgrep = async (
       }
     };
 
+    const cleanup = () => {
+      contentChild.stdout?.removeAllListeners();
+      contentChild.stderr?.removeAllListeners();
+      contentChild.removeAllListeners();
+      if (pathChild) {
+        pathChild.stdout?.removeAllListeners();
+        pathChild.stderr?.removeAllListeners();
+        pathChild.removeAllListeners();
+      }
+    };
+
     // Handle content search results
     contentChild.stdout?.on("data", (data) => {
       const starter = handleRgStdout({ instance, data });
@@ -126,9 +137,15 @@ export const executeRipgrep = async (
         process.stderr.write(data);
       });
 
+      pathChild.on("error", (err) => {
+        cleanup();
+        reject(err);
+      });
+
       pathChild.on("close", (code) => {
         if (code !== 0 && code !== 1) {
           // 1 means no matches found
+          cleanup();
           reject(new Error(`ripgrep path search exited with code ${code}`));
         }
         checkComplete();
@@ -139,12 +156,19 @@ export const executeRipgrep = async (
       process.stderr.write(data);
     });
 
+    contentChild.on("error", (err) => {
+      cleanup();
+      reject(err);
+    });
+
     contentChild.on("close", (code) => {
       if (code !== 0 && code !== 1) {
         // 1 means no matches found
+        cleanup();
         reject(new Error(`ripgrep content search exited with code ${code}`));
       }
       checkComplete();
+      cleanup();
     });
   });
 };
