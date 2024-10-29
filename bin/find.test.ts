@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { handleRgStdout, executeRipgrep } from "./find";
 import { Instance } from "./config";
 
@@ -16,6 +16,10 @@ vi.mock("node:child_process", () => ({
 }));
 
 describe("find functionality", () => {
+  beforeEach(() => {
+    mockSpawn.mockClear();
+  });
+
   const instance: Instance = {
     username: "test-user",
     path: "/home/test/starters",
