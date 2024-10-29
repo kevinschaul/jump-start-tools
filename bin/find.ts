@@ -100,13 +100,37 @@ export const executeRipgrep = async (
     };
 
     const cleanup = () => {
-      contentChild.stdout?.removeAllListeners();
-      contentChild.stderr?.removeAllListeners();
+      contentChild.stdout?.removeListener('data', handleContentData);
+      contentChild.stderr?.removeListener('data', handleError);
       contentChild.removeAllListeners();
       if (pathChild) {
-        pathChild.stdout?.removeAllListeners();
-        pathChild.stderr?.removeAllListeners();
+        pathChild.stdout?.removeListener('data', handlePathData);
+        pathChild.stderr?.removeListener('data', handleError);
         pathChild.removeAllListeners();
+      }
+    };
+
+    const handleError = (data: Buffer | string) => {
+      process.stderr.write(data);
+    };
+
+    const handleContentData = (data: Buffer | string) => {
+      const starter = handleRgStdout({ instance, data });
+      if (starter) {
+        const key = `${starter.group}/${starter.starter}`;
+        if (!matchingStarters.has(key)) {
+          matchingStarters.set(key, starter);
+          onMatch(starter);
+        }
+      }
+    };
+
+    const handlePathData = (data: Buffer | string) => {
+      const starter = handleRgStdout({ instance, data });
+      const key = `${starter.group}/${starter.starter}`;
+      if (!matchingStarters.has(key)) {
+        matchingStarters.set(key, starter);
+        onMatch(starter);
       }
     };
 
