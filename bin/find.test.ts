@@ -125,4 +125,26 @@ describe("find functionality", () => {
       starter: "LineChart",
     });
   });
+
+  it("executes ripgrep with correct arguments for code search", async () => {
+    const onMatch = vi.fn();
+    await executeRipgrep(
+      instance,
+      "test",
+      { text: false, code: true, startersDir: "" },
+      onMatch,
+    );
+
+    // Verify content search call excludes yaml files
+    expect(mockSpawn).toHaveBeenCalledWith("rg", [
+      "--glob",
+      "!node_modules",
+      "--type-not=yaml",
+      "test",
+      "/home/test/starters",
+    ]);
+
+    // No path search should be executed for code search
+    expect(mockSpawn).toHaveBeenCalledTimes(1);
+  });
 });
