@@ -50,14 +50,65 @@ export const executeRipgrep = async (
   args.push(searchTerm);
   args.push(instance.path);
 
-  // Also search in file paths
-  const pathArgs = [...args];
-  pathArgs.push("--files");  // List all files
-  pathArgs.push("--glob");
-  pathArgs.push(`*${searchTerm}*`); // Match paths containing the search term
-
   return new Promise<void>((resolve, reject) => {
-    const child = spawn("rg", args);
+    // Execute content search
+    const contentChild = spawn("rg", args);
+    
+    // Execute path search
+    const pathChild = spawn("rg", [
+      "--glob", "!node_modules",
+      "--files",
+      "--glob", `*${searchTerm}*`,
+      instance.path
+    ]);
+
+    let completedProcesses = 0;
+    const checkComplete = () => {
+      completedProcesses++;
+      if (completedProcesses === 2) {
+        resolve();
+      }
+    };
+
+    // Handle content search results
+    contentChild.stdout?.on("data", (data) => {
+      const starter = handleRgStdout({ instance, data });
+      if (!matchingStarters.has(starter)) {
+        matchingStarters.add(starter);
+        onMatch(starter);
+      }
+    });
+
+    // Handle path search results
+    pathChild.stdout?.on("data", (data) => {
+      const starter = handleRgStdout({ instance, data });
+      if (!matchingStarters.has(starter)) {
+        matchingStarters.add(starter);
+        onMatch(starter);
+      }
+    });
+
+    contentChild.stderr?.on("data", (data) => {
+      process.stderr.write(data);
+    });
+
+    pathChild.stderr?.on("data", (data) => {
+      process.stderr.write(data);
+    });
+
+    contentChild.on("close", (code) => {
+      if (code !== 0 && code !== 1) { // 1 means no matches found
+        reject(new Error(`ripgrep content search exited with code ${code}`));
+      }
+      checkComplete();
+    });
+
+    pathChild.on("close", (code) => {
+      if (code !== 0 && code !== 1) { // 1 means no matches found
+        reject(new Error(`ripgrep path search exited with code ${code}`));
+      }
+      checkComplete();
+    });
 
     child.stdout?.on("data", (data) => {
       const starter = handleRgStdout({ instance, data });
