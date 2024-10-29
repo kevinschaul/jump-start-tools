@@ -23,23 +23,4 @@ describe("handleRgStdout", () => {
     });
   });
 
-  it("handles different path separators correctly", () => {
-    const instance: Instance = {
-      username: "test-user",
-      path: "C:\\Users\\test\\starters"
-    };
-    
-    const testData = "C:\\Users\\test\\starters\\web\\react\\jump-start.yaml:1:description: React starter";
-    
-    const result = handleRgStdout({
-      instance,
-      data: testData
-    });
-
-    expect(result).toEqual({
-      path: "C:\\Users\\test\\starters\\web\\react",
-      group: "web",
-      starter: "react"
-    });
-  });
 });

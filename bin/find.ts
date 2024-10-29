@@ -22,17 +22,9 @@ export const handleRgStdout = ({
   data: Buffer | string;
 }) => {
   const fullPath = data.toString().split(":")[0];
-  
-  // Normalize paths to use the OS-specific separator
-  const normalizedInstancePath = instance.path.split(/[\\/]/).join(path.sep);
-  const normalizedFullPath = fullPath.split(/[\\/]/).join(path.sep);
-  
-  const starterPath = path.relative(normalizedInstancePath, normalizedFullPath);
-  const parts = starterPath.split(path.sep);
-  const group = parts[0];
-  const starter = parts[1];
-  
-  const pathToStarter = path.join(normalizedInstancePath, group, starter);
+  const starterPath = path.relative(instance.path, fullPath);
+  const [group, starter] = starterPath.split(path.sep);
+  const pathToStarter = path.join(instance.path, group, starter);
   return { path: pathToStarter, group, starter };
 };
 
