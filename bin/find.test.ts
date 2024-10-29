@@ -9,7 +9,9 @@ test("basic", () => {
     username: "kevinschaul",
     path: "/home/kevin/dev/jump-start",
   };
-  expect([...handleRgStdout({ instance, data: rgStdout })]).toEqual([
-    ["react-d3", "Chart"],
-  ]);
+  expect(handleRgStdout({ instance, data: rgStdout })).toEqual({
+    group: "react-d3",
+    starter: "Chart",
+    path: "/home/kevin/dev/jump-start/react-d3/Chart",
+  });
 });
