@@ -45,22 +45,8 @@ export const executeRipgrep = async (
     // For text search, look in yaml files
     contentArgs.push("-tyaml");
   } else if (opts.code) {
-    // For code search, look in all code files
-    contentArgs = [
-      ...contentArgs,
-      "-tjs",
-      "-tts",
-      "-tpy",
-      "-tr",
-      "-tjson",
-      "-thtml",
-      "-tcss",
-      "-tmd",
-      "-tsh",
-      "-tbash",
-      "-tzsh",
-      "-tMakefile",
-    ];
+    // For code search, exclude yaml files
+    contentArgs.push("--type-not=yaml");
   }
 
   contentArgs.push(searchTerm);
