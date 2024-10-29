@@ -28,28 +28,29 @@ export const handleRgStdout = ({
   return { path: pathToStarter, group, starter };
 };
 
-const find = async (config: Settings, searchTerm: string, opts: FindOpts) => {
-  for (const instance of config.instances) {
-    const matchingStarters = new Set<MatchingStarter>();
-    let args: string[] = [];
-    if (opts.text) {
-      args.push("-tyaml");
-    }
+export const executeRipgrep = async (
+  instance: Instance,
+  searchTerm: string,
+  opts: FindOpts,
+  onMatch: (starter: MatchingStarter) => void
+) => {
+  const matchingStarters = new Set<MatchingStarter>();
+  let args: string[] = [];
+  if (opts.text) {
+    args.push("-tyaml");
+  }
 
-    // Possibly add --files-with-matches
+  args.push(searchTerm);
+  args.push(instance.path);
 
-    args.push(searchTerm);
-    args.push(instance.path);
-
+  return new Promise<void>((resolve, reject) => {
     const child = spawn("rg", args);
 
     child.stdout?.on("data", (data) => {
       const starter = handleRgStdout({ instance, data });
       if (!matchingStarters.has(starter)) {
         matchingStarters.add(starter);
-        process.stdout.write(
-          [starter.path, starter.group, starter.starter].join("\t") + "\n",
-        );
+        onMatch(starter);
       }
     });
 
@@ -57,8 +58,26 @@ const find = async (config: Settings, searchTerm: string, opts: FindOpts) => {
       process.stderr.write(data);
     });
 
-    child.on("close", (code) => {});
-  }
+    child.on("close", (code) => {
+      if (code === 0 || code === 1) { // 1 means no matches found
+        resolve();
+      } else {
+        reject(new Error(`ripgrep process exited with code ${code}`));
+      }
+    });
+  });
+};
+
+const find = async (config: Settings, searchTerm: string, opts: FindOpts) => {
+  const promises = config.instances.map((instance) =>
+    executeRipgrep(instance, searchTerm, opts, (starter) => {
+      process.stdout.write(
+        [starter.path, starter.group, starter.starter].join("\t") + "\n"
+      );
+    })
+  );
+
+  await Promise.all(promises);
 };
 
 export default find;
