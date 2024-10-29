@@ -73,4 +73,49 @@ describe("find functionality", () => {
       ]),
     );
   });
+
+  it("handles multiple matches from the same directory", async () => {
+    const onMatch = vi.fn();
+    const mockInstance: Instance = {
+      username: "kevin",
+      path: "/home/kevin/dev/jump-start",
+    };
+
+    // Mock the spawn implementation to simulate both content and path search results
+    const mockEventEmitter = {
+      stdout: {
+        on: (event: string, callback: (data: string) => void) => {
+          if (event === "data") {
+            // Simulate finding both Chart and LineChart
+            callback("/home/kevin/dev/jump-start/react-d3/Chart/jump-start.yaml:1:description: d3 chart");
+            callback("/home/kevin/dev/jump-start/react-d3/LineChart/jump-start.yaml:1:description: d3 line chart");
+          }
+        },
+      },
+      stderr: { on: vi.fn() },
+      on: (event: string, cb: (code: number) => void) => cb(0),
+    };
+
+    mockSpawn.mockReturnValueOnce(mockEventEmitter);
+
+    await executeRipgrep(
+      mockInstance,
+      "d3",
+      { text: true, code: false, startersDir: "" },
+      onMatch,
+    );
+
+    // Verify both matches were found and handled
+    expect(onMatch).toHaveBeenCalledTimes(2);
+    expect(onMatch).toHaveBeenCalledWith({
+      path: "/home/kevin/dev/jump-start/react-d3/Chart",
+      group: "react-d3",
+      starter: "Chart",
+    });
+    expect(onMatch).toHaveBeenCalledWith({
+      path: "/home/kevin/dev/jump-start/react-d3/LineChart",
+      group: "react-d3",
+      starter: "LineChart",
+    });
+  });
 });
