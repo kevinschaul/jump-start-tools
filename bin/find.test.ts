@@ -46,6 +46,9 @@ describe("find functionality", () => {
     });
     
     vi.mock('node:child_process', () => ({
+      default: {
+        spawn: (...args: any[]) => mockSpawn(...args)
+      },
       spawn: (...args: any[]) => mockSpawn(...args)
     }));
 

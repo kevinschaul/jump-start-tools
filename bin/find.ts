@@ -110,25 +110,6 @@ export const executeRipgrep = async (
       checkComplete();
     });
 
-    child.stdout?.on("data", (data) => {
-      const starter = handleRgStdout({ instance, data });
-      if (!matchingStarters.has(starter)) {
-        matchingStarters.add(starter);
-        onMatch(starter);
-      }
-    });
-
-    child.stderr?.on("data", (data) => {
-      process.stderr.write(data);
-    });
-
-    child.on("close", (code) => {
-      if (code === 0 || code === 1) { // 1 means no matches found
-        resolve();
-      } else {
-        reject(new Error(`ripgrep process exited with code ${code}`));
-      }
-    });
   });
 };
 
