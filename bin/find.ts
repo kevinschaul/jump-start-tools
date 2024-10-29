@@ -37,6 +37,9 @@ export const executeRipgrep = async (
   opts: FindOpts,
   onMatch: (starter: MatchingStarter) => void,
 ) => {
+  if (!searchTerm.trim()) {
+    return;
+  }
   const matchingStarters = new Map<string, MatchingStarter>();
   // Search in both file contents and paths
   let contentArgs: string[] = ["--glob", "!node_modules"];
@@ -126,6 +129,9 @@ export const executeRipgrep = async (
 };
 
 const find = async (config: Settings, searchTerm: string, opts: FindOpts) => {
+  if (!searchTerm.trim()) {
+    return;
+  }
   const promises = config.instances.map((instance) =>
     executeRipgrep(instance, searchTerm, opts, (starter) => {
       process.stdout.write(

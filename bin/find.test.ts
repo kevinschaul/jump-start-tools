@@ -130,6 +130,20 @@ describe("find functionality", () => {
     });
   });
 
+  it("handles empty search term without executing search", async () => {
+    const onMatch = vi.fn();
+    await executeRipgrep(
+      instance,
+      "",
+      { text: true, code: true, startersDir: "" },
+      onMatch,
+    );
+
+    // Verify ripgrep was not called
+    expect(mockSpawn).not.toHaveBeenCalled();
+    expect(onMatch).not.toHaveBeenCalled();
+  });
+
   it("executes ripgrep with correct arguments for code search", async () => {
     const onMatch = vi.fn();
     await executeRipgrep(
