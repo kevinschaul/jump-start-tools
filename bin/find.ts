@@ -135,31 +135,13 @@ export const executeRipgrep = async (
     };
 
     // Handle content search results
-    contentChild.stdout?.on("data", (data) => {
-      const starter = handleRgStdout({ instance, data });
-      if (starter) {
-        const key = `${starter.group}/${starter.starter}`;
-        if (!matchingStarters.has(key)) {
-          matchingStarters.set(key, starter);
-          onMatch(starter);
-        }
-      }
-    });
+    contentChild.stdout?.on("data", handleContentData);
+    contentChild.stderr?.on("data", handleError);
 
     // Handle path search results if path search is enabled
     if (pathChild) {
-      pathChild.stdout?.on("data", (data) => {
-        const starter = handleRgStdout({ instance, data });
-        const key = `${starter.group}/${starter.starter}`;
-        if (!matchingStarters.has(key)) {
-          matchingStarters.set(key, starter);
-          onMatch(starter);
-        }
-      });
-
-      pathChild.stderr?.on("data", (data) => {
-        process.stderr.write(data);
-      });
+      pathChild.stdout?.on("data", handlePathData);
+      pathChild.stderr?.on("data", handleError);
 
       pathChild.on("error", (err) => {
         cleanup();
@@ -175,10 +157,6 @@ export const executeRipgrep = async (
         checkComplete();
       });
     }
-
-    contentChild.stderr?.on("data", (data) => {
-      process.stderr.write(data);
-    });
 
     contentChild.on("error", (err) => {
       cleanup();
