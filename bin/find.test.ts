@@ -4,7 +4,7 @@ import { Instance } from "./config";
 
 const createMockEventEmitter = () => {
   const listeners: {[key: string]: Function[]} = {};
-  const stream = {
+  const createStream = () => ({
     on: vi.fn((event: string, listener: Function) => {
       listeners[event] = listeners[event] || [];
       listeners[event].push(listener);
@@ -14,11 +14,13 @@ const createMockEventEmitter = () => {
         listeners[event] = listeners[event].filter(l => l !== listener);
       }
     })
-  };
+  });
+  const stdout = createStream();
+  const stderr = createStream();
   return {
-    stdout: stream,
-    stderr: stream,
-    on: (event: string, cb: (code: number) => void) => cb(0),
+    stdout,
+    stderr,
+    on: vi.fn((event: string, cb: (code: number) => void) => cb(0)),
     removeListener: vi.fn()
   };
 };
