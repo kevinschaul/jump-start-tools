@@ -2,18 +2,20 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { handleRgStdout, executeRipgrep } from "./find";
 import { Instance } from "./config";
 
-const mockSpawn = vi.fn().mockReturnValue({
-  stdout: { 
+const createMockEventEmitter = () => ({
+  stdout: {
     on: vi.fn(),
-    removeListener: vi.fn()
+    removeAllListeners: vi.fn()
   },
-  stderr: { 
+  stderr: {
     on: vi.fn(),
-    removeListener: vi.fn()
+    removeAllListeners: vi.fn()
   },
   on: (event: string, cb: (code: number) => void) => cb(0),
   removeAllListeners: vi.fn()
 });
+
+const mockSpawn = vi.fn().mockImplementation(() => createMockEventEmitter());
 
 vi.mock("node:child_process", () => ({
   default: {

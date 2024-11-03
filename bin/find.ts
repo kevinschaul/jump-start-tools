@@ -100,12 +100,12 @@ export const executeRipgrep = async (
     };
 
     const cleanup = () => {
-      contentChild.stdout?.removeListener('data', handleContentData);
-      contentChild.stderr?.removeListener('data', handleError);
+      contentChild.stdout?.removeAllListeners('data');
+      contentChild.stderr?.removeAllListeners('data');
       contentChild.removeAllListeners();
       if (pathChild) {
-        pathChild.stdout?.removeListener('data', handlePathData);
-        pathChild.stderr?.removeListener('data', handleError);
+        pathChild.stdout?.removeAllListeners('data');
+        pathChild.stderr?.removeAllListeners('data');
         pathChild.removeAllListeners();
       }
     };
