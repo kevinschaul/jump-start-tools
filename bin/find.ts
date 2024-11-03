@@ -100,14 +100,33 @@ export const executeRipgrep = async (
     };
 
     const cleanup = () => {
-      contentChild.stdout?.removeAllListeners('data');
-      contentChild.stderr?.removeAllListeners('data');
-      contentChild.removeAllListeners();
+      contentChild.stdout?.removeListener('data', handleContentData);
+      contentChild.stderr?.removeListener('data', handleError);
+      contentChild.removeListener('error', cleanup);
+      contentChild.removeListener('close', onContentClose);
       if (pathChild) {
-        pathChild.stdout?.removeAllListeners('data');
-        pathChild.stderr?.removeAllListeners('data');
-        pathChild.removeAllListeners();
+        pathChild.stdout?.removeListener('data', handlePathData);
+        pathChild.stderr?.removeListener('data', handleError);
+        pathChild.removeListener('error', cleanup);
+        pathChild.removeListener('close', onPathClose);
       }
+    };
+
+    const onContentClose = (code: number) => {
+      if (code !== 0 && code !== 1) {
+        cleanup();
+        reject(new Error(`ripgrep content search exited with code ${code}`));
+      }
+      checkComplete();
+      cleanup();
+    };
+
+    const onPathClose = (code: number) => {
+      if (code !== 0 && code !== 1) {
+        cleanup();
+        reject(new Error(`ripgrep path search exited with code ${code}`));
+      }
+      checkComplete();
     };
 
     const handleError = (data: Buffer | string) => {
@@ -163,15 +182,7 @@ export const executeRipgrep = async (
       reject(err);
     });
 
-    contentChild.on("close", (code) => {
-      if (code !== 0 && code !== 1) {
-        // 1 means no matches found
-        cleanup();
-        reject(new Error(`ripgrep content search exited with code ${code}`));
-      }
-      checkComplete();
-      cleanup();
-    });
+    contentChild.on("close", onContentClose);
   });
 };
 
