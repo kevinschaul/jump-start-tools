@@ -1,15 +1,29 @@
 #!/usr/bin/env -S npx tsx
 
 import { Command } from "commander";
-import { Config } from "./config";
+import configCommand, { Config } from "./config";
 import find from "./find";
 import storybook from "./storybook";
 import buildStorybook from "./buildStorybook";
 import updateReadme from "./updateReadme";
 
 const program = new Command();
+const config = new Config("jump-start");
 
-const config = new Config("jump-start").load();
+const withConfig = (action: Function) => {
+  return action.bind(null, config.load());
+};
+
+program.option(
+  "--config-file <path>",
+  "Path to your config file",
+  config.getConfigFile(),
+);
+
+program
+  .command("config")
+  .description("Print path to your jump-start config file")
+  .action(configCommand);
 
 program
   .command("find")
@@ -17,7 +31,7 @@ program
   .option("--text", "Search the starter text", true)
   .option("--code", "Search the starter code", false)
   .argument("<search-term>")
-  .action(find.bind(null, config));
+  .action(withConfig(find));
 
 program
   .command("storybook")
