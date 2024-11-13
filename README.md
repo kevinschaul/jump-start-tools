@@ -58,6 +58,23 @@ TODO use config
 
 TODO use config
 
+## Neovim plugin
+
+[./jump-start.nvim](./jump_start.nvim) includes a Telescope picker to easily search and use starters.
+
+To install:
+
+```
+  { dir = "~/dev/jump-start-tools/jump_start.nvim", opts = {} },
+```
+
+You will have two new Telescope pickers now. Run with:
+
+```
+:Telescope jump_start find_by_text
+:Telescope jump_start find_by_code
+```
+
 ## Development
 
 To view the website locally, navigate to your
