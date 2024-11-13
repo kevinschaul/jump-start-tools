@@ -62,17 +62,30 @@ TODO use config
 
 [./jump-start.nvim](./jump_start.nvim) includes a Telescope picker to easily search and use starters.
 
-To install:
+To install with [lazy.nvim](https://lazy.folke.io/):
 
 ```
-  { dir = "~/dev/jump-start-tools/jump_start.nvim", opts = {} },
+{ dir = "~/dev/jump-start-tools/jump_start.nvim" },
 ```
 
-You will have two new Telescope pickers now. Run with:
+You will have two new Telescope pickers now. Run manually with:
 
 ```
 :Telescope jump_start find_by_text
 :Telescope jump_start find_by_code
+```
+
+But you problably want to set up your own mappings. Here are mine:
+
+```
+["<Leader>fj"] = {
+  function() require("telescope").extensions.jump_start.find_by_text() end,
+  desc = "Find jump-starter by text",
+},
+["<Leader>fJ"] = {
+  function() require("telescope").extensions.jump_start.find_by_code() end,
+  desc = "Find jump-starter by code",
+},
 ```
 
 ## Development
