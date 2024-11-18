@@ -1,9 +1,12 @@
 import { homedir } from "os";
 import { join } from "path";
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from "fs";
+import { Command } from "commander";
+
+interface ConfigOpts { }
 
 export interface Instance {
-  username: string;
+  name: string;
   path: string;
 }
 
@@ -14,8 +17,8 @@ export interface Settings {
 const defaultSettings: Settings = {
   instances: [
     {
-      username: "",
       path: "",
+      name: "",
     },
   ],
 };
@@ -52,6 +55,10 @@ export class Config {
     }
   }
 
+  getConfigFile(): string {
+    return this.configFile;
+  }
+
   /**
    * Save settings to `toolName`.config.json
    * @param settings - The settings object to save
@@ -85,3 +92,13 @@ export class Config {
     }
   }
 }
+
+const configCommand = async (opts: ConfigOpts, command: Command) => {
+  const parentOpts = command.parent?.opts() || {};
+  const editor = process.env["EDITOR"] || "vi";
+  if (!("configFile" in parentOpts)) {
+    throw new Error(`configFile is reuquired`);
+  }
+  console.log(parentOpts.configFile);
+};
+export default configCommand;
