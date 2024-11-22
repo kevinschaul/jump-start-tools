@@ -64,17 +64,9 @@ export const executeRipgrep = async (
 
   return new Promise<void>((resolve, reject) => {
     // Execute content search
-    // console.log(contentArgs)
     const contentChild = spawn("rg", contentArgs);
 
-    // For text search, also search filepaths
-    const pathArgs = opts.text
-      ? ["--files", "--glob", `*${searchTerm}*`, instance.path]
-      : null;
-
-    const pathChild = pathArgs ? spawn("rg", pathArgs) : null;
-
-    const totalProcesses = pathChild ? 2 : 1;
+    const totalProcesses = 1;
     let completedProcesses = 0;
     const checkComplete = () => {
       completedProcesses++;
@@ -93,18 +85,6 @@ export const executeRipgrep = async (
       if (contentChild.removeListener) {
         contentChild.removeListener("error", cleanup);
         contentChild.removeListener("close", onContentClose);
-      }
-      if (pathChild) {
-        if (pathChild.stdout?.removeListener) {
-          pathChild.stdout.removeListener("data", handlePathData);
-        }
-        if (pathChild.stderr?.removeListener) {
-          pathChild.stderr.removeListener("data", handleError);
-        }
-        if (pathChild.removeListener) {
-          pathChild.removeListener("error", cleanup);
-          pathChild.removeListener("close", onPathClose);
-        }
       }
     };
 
@@ -140,38 +120,9 @@ export const executeRipgrep = async (
       }
     };
 
-    const handlePathData = (data: Buffer | string) => {
-      const starter = handleRgStdout({ instance, data });
-      const key = `${starter.group}/${starter.starter}`;
-      if (!matchingStarters.has(key)) {
-        matchingStarters.set(key, starter);
-        onMatch(starter);
-      }
-    };
-
     // Handle content search results
     contentChild.stdout?.on("data", handleContentData);
     contentChild.stderr?.on("data", handleError);
-
-    // Handle path search results if path search is enabled
-    if (pathChild) {
-      pathChild.stdout?.on("data", handlePathData);
-      pathChild.stderr?.on("data", handleError);
-
-      pathChild.on("error", (err) => {
-        cleanup();
-        reject(err);
-      });
-
-      pathChild.on("close", (code) => {
-        if (code !== 0 && code !== 1) {
-          // 1 means no matches found
-          cleanup();
-          reject(new Error(`ripgrep path search exited with code ${code}`));
-        }
-        checkComplete();
-      });
-    }
 
     contentChild.on("error", (err) => {
       cleanup();

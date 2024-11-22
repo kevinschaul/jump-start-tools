@@ -79,14 +79,6 @@ describe("find functionality", () => {
       "test",
       "/home/test/starters",
     ]);
-
-    // Verify path search call
-    expect(mockSpawn).toHaveBeenCalledWith("rg", [
-      "--files",
-      "--glob",
-      "*test*",
-      "/home/test/starters",
-    ]);
   });
 
   it("handles multiple matches from the same directory", async () => {
