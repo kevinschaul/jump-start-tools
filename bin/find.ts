@@ -3,7 +3,6 @@ import { spawn } from "node:child_process";
 import { type Instance, type Settings } from "./config";
 
 type FindOpts = {
-  startersDir: string;
   text: boolean;
   code: boolean;
 };

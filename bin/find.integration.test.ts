@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeAll, afterAll } from "vitest";
+import { describe, expect, it, afterAll } from "vitest";
 import { executeRipgrep } from "./find";
 import { Instance } from "./config";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "fs";
@@ -63,7 +63,7 @@ describe("find: integration tests", () => {
     await executeRipgrep(
       instance,
       "Python script",
-      { text: true, code: false, startersDir: "" },
+      { text: true, code: false },
       (starter) => {
         matches.push(`${starter.group}/${starter.starter}`);
       },
@@ -95,7 +95,7 @@ describe("find: integration tests", () => {
     await executeRipgrep(
       instance,
       "Python script",
-      { text: false, code: true, startersDir: "" },
+      { text: false, code: true },
       (starter) => {
         matches.push(`${starter.group}/${starter.starter}`);
       },
@@ -115,7 +115,7 @@ describe("find: integration tests", () => {
     await executeRipgrep(
       instance,
       "python test",
-      { text: true, code: false, startersDir: "" },
+      { text: true, code: false },
       (starter) => {
         matches.push(`${starter.group}/${starter.starter}`);
       },
@@ -135,7 +135,7 @@ describe("find: integration tests", () => {
     await executeRipgrep(
       instance,
       "python test",
-      { text: false, code: true, startersDir: "" },
+      { text: false, code: true },
       (starter) => {
         matches.push(`${starter.group}/${starter.starter}`);
       },
@@ -155,7 +155,7 @@ describe("find: integration tests", () => {
     await executeRipgrep(
       instance,
       "a test script",
-      { text: true, code: false, startersDir: "" },
+      { text: true, code: false },
       (starter) => {
         matches.push(`${starter.group}/${starter.starter}`);
       },
