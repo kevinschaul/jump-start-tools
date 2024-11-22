@@ -1,12 +1,42 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { executeRipgrep } from "./find";
 import { Instance } from "./config";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 describe("integration tests", () => {
-  const instance: Instance = {
-    name: "test-user",
-    path: process.cwd() + "/test/starters",
-  };
+  let tempDir: string;
+  let instance: Instance;
+
+  beforeAll(() => {
+    // Create a temporary directory
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'find-test-'));
+    
+    // Set up test directory structure
+    const pythonDir = path.join(tempDir, 'python/script');
+    fs.mkdirSync(pythonDir, { recursive: true });
+    
+    // Create test files
+    fs.writeFileSync(
+      path.join(pythonDir, 'convert.py'),
+      'def main():\n    print("python test")\n'
+    );
+    fs.writeFileSync(
+      path.join(pythonDir, 'jump-start.yaml'),
+      'title: Python Script\ndescription: A test script\n'
+    );
+
+    instance = {
+      name: "test-user",
+      path: tempDir,
+    };
+  });
+
+  afterAll(() => {
+    // Clean up temporary directory
+    fs.rmSync(tempDir, { recursive: true, force: true });
+  });
 
   it("executes real ripgrep and finds matches", async () => {
     const matches: string[] = [];
