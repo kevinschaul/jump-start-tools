@@ -1,57 +1,66 @@
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
+local entry_display = require("telescope.pickers.entry_display")
 
--- split("a,b,c", ",") => {"a", "b", "c"}
-local function split(s, sep)
-	local fields = {}
-
-	local sep = sep or " "
-	local pattern = string.format("([^%s]+)", sep)
-	string.gsub(s, pattern, function(c)
-		fields[#fields + 1] = c
-	end)
-
-	return fields
+-- Debug setup
+local log_file = io.open("./nvim-debug.log", "a")
+local function debug_print(...)
+	if log_file then
+		log_file:write(string.format("[%s] ", os.date("%Y-%m-%d %H:%M:%S")))
+		log_file:write(table.concat({ ... }, " ") .. "\n")
+		log_file:flush()
+	end
 end
 
 local function make_entry_from_jump_start(entry)
-	local parts = split(entry, "\t")
+	debug_print("Processing entry:", vim.inspect(entry))
+	local parts = vim.split(entry, "\t")
+
 	return {
-		value = parts[1],
-		display = parts[2] .. "/" .. parts[3],
-		ordinal = parts[2] .. "/" .. parts[3],
+		value = entry,
+		ordinal = entry,
+		display = table.concat(parts, " | "),
+		filename = parts[1],
+		lnum = 1,
 	}
 end
 
-local function find_by_text(opts)
+local function find_by(search_type, opts)
+	opts = opts or {}
+
 	pickers
-			.new(opts, {
-				prompt_title = "jump-start find by text",
-				finder = finders.new_job(function(prompt)
-					return { "jump-start", "find", prompt }
-				end, make_entry_from_jump_start),
-				sorter = conf.generic_sorter(opts),
-			})
-			:find()
+		.new(opts, {
+			prompt_title = "jump-start find by " .. search_type,
+			finder = finders.new_job(function(prompt)
+				-- Only send the search if there's a prompt
+				if prompt ~= "" then
+					return { "jump-start", "find", "--" .. search_type, prompt }
+				end
+				-- Return empty results for empty prompt
+				return { "echo", "" }
+			end, make_entry_from_jump_start),
+			previewer = conf.file_previewer(opts),
+		})
+		:find()
+end
+
+local function find_by_text(opts)
+	return find_by("text", opts)
 end
 
 local function find_by_code(opts)
-	pickers
-			.new(opts, {
-				prompt_title = "jump-start find by code",
-				finder = finders.new_job(function(prompt)
-					return { "jump-start", "find", "--code", prompt }
-				end, make_entry_from_jump_start),
-				sorter = conf.generic_sorter(opts),
-			})
-			:find()
+	return find_by("code", opts)
+end
+
+local function setup(ext_config, config)
+	-- ext_config and config are optional
 end
 
 return require("telescope").register_extension({
-	setup = function(ext_config, config) end,
+	setup = setup,
 	exports = {
 		find_by_text = find_by_text,
-		find_by_code = find_by_code
+		find_by_code = find_by_code,
 	},
 })

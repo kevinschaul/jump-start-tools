@@ -2,7 +2,7 @@ import * as path from "node:path";
 import { spawn } from "node:child_process";
 import { type Instance, type Settings } from "./config";
 
-type FindOpts = {
+export type FindOpts = {
   text: boolean;
   code: boolean;
 };
@@ -129,7 +129,9 @@ const find = async (config: Settings, searchTerm: string, opts: FindOpts) => {
   const promises = config.instances.map((instance) =>
     executeRipgrep(instance, searchTerm, opts, (starter) => {
       process.stdout.write(
-        [starter.path, starter.group, starter.starter].join("\t") + "\n",
+        [starter.path, instance.name, starter.group, starter.starter].join(
+          "\t",
+        ) + "\n",
       );
     }),
   );

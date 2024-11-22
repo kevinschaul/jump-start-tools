@@ -2,7 +2,7 @@
 
 import { Command } from "commander";
 import configCommand, { Config } from "./config";
-import find from "./find";
+import find, { FindOpts } from "./find";
 import storybook from "./storybook";
 import buildStorybook from "./buildStorybook";
 import updateReadme from "./updateReadme";
@@ -28,10 +28,19 @@ program
 program
   .command("find")
   .description("Search your installed starters")
-  .option("--text", "Search the starter text", true)
-  .option("--code", "Search the starter code", false)
+  .option("--no-text", "Don't search the starter text")
+  .option("--code", "Search the starter code")
   .argument("<search-term>")
-  .action(withConfig(find));
+  .action(
+    withConfig((config: Config, searchTerm: string, options: FindOpts) => {
+      // text will be true by default
+      // --no-text will set it to false
+      // --code will set it to false (unless --text is explicitly provided)
+      const text = options.code ? false : options.text;
+
+      return find(config, searchTerm, { ...options, text });
+    }),
+  );
 
 program
   .command("storybook")
