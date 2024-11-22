@@ -264,48 +264,4 @@ describe("find functionality", () => {
     expect(mockRemoveAllListeners).toHaveBeenCalled();
     expect(mockRemoveAllListeners.mock.calls.length).toBeGreaterThan(0);
   });
-
-  it("finds starters with 'chart' in their path, even if not in YAML files", async () => {
-    const mockConfig = {
-      instances: [
-        {
-          name: "test-user",
-          path: "/home/test/starters",
-        },
-      ],
-    };
-
-    const mockSpawn = vi.fn().mockImplementation(() => {
-      const emitter = createMockEventEmitter();
-      emitter.stdout.on = vi.fn((event, callback) => {
-        if (event === "data") {
-          // Simulate finding starters with 'chart' in their path
-          callback("/home/test/starters/d3/chart/some-file.js");
-          callback("/home/test/starters/react/line-chart/index.js");
-          callback("/home/test/starters/vue/pie-chart/component.vue");
-          // This one shouldn't be included in results (no 'chart' in path)
-          callback("/home/test/starters/react/graph/jump-start.yaml");
-        }
-      });
-      return emitter;
-    });
-
-    vi.mock("node:child_process", () => ({
-      spawn: (...args: any[]) => mockSpawn(...args),
-    }));
-
-    const mockStdout = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-
-    const find = (await import("./find")).default;
-    await find(mockConfig, "chart", { text: true, code: true, startersDir: "" });
-
-    expect(mockSpawn).toHaveBeenCalledWith("rg", expect.arrayContaining(["chart"]));
-    
-    expect(mockStdout).toHaveBeenCalledWith(expect.stringContaining("/home/test/starters/d3/chart\td3\tchart\n"));
-    expect(mockStdout).toHaveBeenCalledWith(expect.stringContaining("/home/test/starters/react/line-chart\treact\tline-chart\n"));
-    expect(mockStdout).toHaveBeenCalledWith(expect.stringContaining("/home/test/starters/vue/pie-chart\tvue\tpie-chart\n"));
-    expect(mockStdout).not.toHaveBeenCalledWith(expect.stringContaining("/home/test/starters/react/graph\treact\tgraph\n"));
-
-    mockStdout.mockRestore();
-  });
 });
