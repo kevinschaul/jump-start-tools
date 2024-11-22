@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "./bin/cli.ts storybook --starters-dir ../jump-start",
     "build": "./bin/cli.ts build-storybook --starters-dir ../jump-start",
-    "test": "vitest"
+    "test-all": "vitest",
+    "test": "vitest --exclude 'bin/cli.integration.test.ts'"
   },
   "dependencies": {
     "@chromatic-com/storybook": "^1.5.0",

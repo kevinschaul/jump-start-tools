@@ -1,9 +1,9 @@
 import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import { executeRipgrep } from "./find";
 import { Instance } from "./config";
-import fs from "fs";
-import path from "path";
-import os from "os";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
 
 describe("integration tests", () => {
   let tempDir: string;
@@ -11,20 +11,20 @@ describe("integration tests", () => {
 
   beforeAll(() => {
     // Create a temporary directory
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'find-test-'));
-    
+    tempDir = mkdtempSync(join(tmpdir(), "just-start-tools-test-"));
+
     // Set up test directory structure
-    const pythonDir = path.join(tempDir, 'python/script');
-    fs.mkdirSync(pythonDir, { recursive: true });
-    
+    const pythonDir = join(tempDir, "python/script");
+    mkdirSync(pythonDir, { recursive: true });
+
     // Create test files
-    fs.writeFileSync(
-      path.join(pythonDir, 'convert.py'),
-      'def main():\n    print("python test")\n'
+    writeFileSync(
+      join(pythonDir, "convert.py"),
+      'def main():\n    print("python test")\n',
     );
-    fs.writeFileSync(
-      path.join(pythonDir, 'jump-start.yaml'),
-      'title: Python Script\ndescription: A test script\n'
+    writeFileSync(
+      join(pythonDir, "jump-start.yaml"),
+      "title: Python Script\ndescription: A test script\n",
     );
 
     instance = {
@@ -35,7 +35,7 @@ describe("integration tests", () => {
 
   afterAll(() => {
     // Clean up temporary directory
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    rmSync(tempDir, { recursive: true, force: true });
   });
 
   it("executes real ripgrep and finds matches", async () => {
