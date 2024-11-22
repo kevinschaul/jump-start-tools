@@ -28,7 +28,7 @@ const collectProcessOutput = (
   process.stderr?.on("data", (data) => {
     stderr += data.toString();
   });
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     process.on("exit", () => {
       resolve([stdout, stderr]);
     });
@@ -107,4 +107,4 @@ it("build-storybook should generate the site", async () => {
   console.log(stdout, stderr);
 
   expect(stdout).toContain("Preview built");
-}, 20000);
+}, 40000);

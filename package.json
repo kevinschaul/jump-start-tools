@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "./bin/cli.ts storybook --starters-dir ../jump-start",
     "build": "./bin/cli.ts build-storybook --starters-dir ../jump-start",
-    "test": "vitest --disable-console-intercept"
+    "test": "vitest"
   },
   "dependencies": {
     "@chromatic-com/storybook": "^1.5.0",
@@ -29,7 +29,6 @@
     "chokidar": "^3.6.0",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
-    "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "eslint-plugin-storybook": "^0.8.0",
@@ -44,11 +43,16 @@
     "vitest": "^1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.15.0",
     "@types/node": "^20.14.2",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.2",
+    "globals": "^15.12.0",
     "jsdom": "^24.1.0",
-    "memfs": "^4.9.2"
+    "memfs": "^4.9.2",
+    "typescript-eslint": "^8.15.0"
   },
   "eslintConfig": {
     "extends": [

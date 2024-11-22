@@ -72,7 +72,6 @@ describe("find functionality", () => {
       { text: true, code: true, startersDir: "" },
       onMatch,
     );
-    expect(1 + 1).toEqual(2);
 
     // Verify content search call
     expect(mockSpawn).toHaveBeenCalledWith("rg", [
