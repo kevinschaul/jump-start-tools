@@ -24,20 +24,16 @@ export const handleRgStdout = ({
   const fullPath = data.toString().split(":")[0];
   const starterPath = path.relative(instance.path, fullPath);
   const parts = starterPath.split(path.sep);
-  
+
   // Validate path structure: should be group/starter/...
   if (parts.length < 2) return null;
-  
-  // Skip if first part is a special directory
-  const invalidDirs = ['node_modules', '.github', '.build', 'dist', 'build', 'github-actions'];
-  if (invalidDirs.includes(parts[0])) return null;
-  
+
   const group = parts[0];
   const starter = parts[1];
-  
+
   // Ensure we have both group and starter
   if (!group || !starter) return null;
-  
+
   const pathToStarter = path.join(instance.path, group, starter);
   return { path: pathToStarter, group, starter };
 };
@@ -53,8 +49,8 @@ export const executeRipgrep = async (
   }
   const matchingStarters = new Map<string, MatchingStarter>();
   // Search in both file contents and paths
-  let contentArgs: string[] = ["--glob", "!node_modules"];
-  
+  let contentArgs: string[] = [];
+
   if (opts.text) {
     // For text search, look in yaml files
     contentArgs.push("-tyaml");
@@ -63,30 +59,16 @@ export const executeRipgrep = async (
     contentArgs.push("--type-not=yaml");
   }
 
-  // Add more directories to ignore
-  contentArgs = [
-    ...contentArgs,
-    "--glob", "!.github/**",
-    "--glob", "!.build/**", 
-    "--glob", "!build/**",
-    "--glob", "!dist/**",
-    searchTerm,
-    instance.path
-  ];
+  contentArgs = [...contentArgs, searchTerm, instance.path];
 
   return new Promise<void>((resolve, reject) => {
     // Execute content search
     const contentChild = spawn("rg", contentArgs);
 
     // For text search, also search filepaths
-    const pathArgs = opts.text ? [
-      "--glob",
-      "!node_modules",
-      "--files",
-      "--glob",
-      `*${searchTerm}*`,
-      instance.path,
-    ] : null;
+    const pathArgs = opts.text
+      ? ["--files", "--glob", `*${searchTerm}*`, instance.path]
+      : null;
 
     const pathChild = pathArgs ? spawn("rg", pathArgs) : null;
 
@@ -101,25 +83,25 @@ export const executeRipgrep = async (
 
     const cleanup = () => {
       if (contentChild.stdout?.removeListener) {
-        contentChild.stdout.removeListener('data', handleContentData);
+        contentChild.stdout.removeListener("data", handleContentData);
       }
       if (contentChild.stderr?.removeListener) {
-        contentChild.stderr.removeListener('data', handleError);
+        contentChild.stderr.removeListener("data", handleError);
       }
       if (contentChild.removeListener) {
-        contentChild.removeListener('error', cleanup);
-        contentChild.removeListener('close', onContentClose);
+        contentChild.removeListener("error", cleanup);
+        contentChild.removeListener("close", onContentClose);
       }
       if (pathChild) {
         if (pathChild.stdout?.removeListener) {
-          pathChild.stdout.removeListener('data', handlePathData);
+          pathChild.stdout.removeListener("data", handlePathData);
         }
         if (pathChild.stderr?.removeListener) {
-          pathChild.stderr.removeListener('data', handleError);
+          pathChild.stderr.removeListener("data", handleError);
         }
         if (pathChild.removeListener) {
-          pathChild.removeListener('error', cleanup);
-          pathChild.removeListener('close', onPathClose);
+          pathChild.removeListener("error", cleanup);
+          pathChild.removeListener("close", onPathClose);
         }
       }
     };
