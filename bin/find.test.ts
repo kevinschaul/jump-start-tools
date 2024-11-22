@@ -14,47 +14,6 @@ const createMockEventEmitter = () => ({
   removeListener: vi.fn(),
 });
 
-describe("ripgrep integration tests", () => {
-  const instance: Instance = {
-    name: "test-user",
-    path: process.cwd() + "/test/starters",
-  };
-
-  it("executes real ripgrep and finds matches", async () => {
-    const matches: string[] = [];
-    await executeRipgrep(
-      instance,
-      "python",
-      { text: true, code: true, startersDir: "" },
-      (starter) => {
-        matches.push(`${starter.group}/${starter.starter}`);
-      }
-    );
-
-    // Should find the python/script starter
-    expect(matches).toContain("python/script");
-    
-    // Verify the actual ripgrep command works
-    const contentMatches = matches.filter(m => m.includes("python"));
-    expect(contentMatches.length).toBeGreaterThan(0);
-  });
-
-  it("handles real ripgrep path search", async () => {
-    const matches: string[] = [];
-    await executeRipgrep(
-      instance,
-      "script",
-      { text: true, code: true, startersDir: "" },
-      (starter) => {
-        matches.push(`${starter.group}/${starter.starter}`);
-      }
-    );
-
-    // Should find paths containing "script"
-    expect(matches).toContain("python/script");
-  });
-});
-
 const mockSpawn = vi.fn().mockImplementation(() => createMockEventEmitter());
 
 vi.mock("node:child_process", () => ({

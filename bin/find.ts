@@ -48,6 +48,7 @@ export const executeRipgrep = async (
     return;
   }
   const matchingStarters = new Map<string, MatchingStarter>();
+
   // Search in both file contents and paths
   let contentArgs: string[] = [];
 
@@ -63,6 +64,7 @@ export const executeRipgrep = async (
 
   return new Promise<void>((resolve, reject) => {
     // Execute content search
+    // console.log(contentArgs)
     const contentChild = spawn("rg", contentArgs);
 
     // For text search, also search filepaths
