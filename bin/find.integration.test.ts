@@ -5,26 +5,27 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
-const createTestDirectory = (fileStructure) => {
-  // TODO create the structure using fileStructure argument
-
+const createTestDirectory = (fileStructure: Record<string, any>) => {
   // Create a temporary directory
   const tempDir = mkdtempSync(join(tmpdir(), "just-start-tools-test-"));
 
-  // Set up test directory structure
-  const pythonDir = join(tempDir, "python/script");
-  mkdirSync(pythonDir, { recursive: true });
+  // Recursively create directories and files
+  const createNestedStructure = (structure: Record<string, any>, currentPath: string) => {
+    for (const [name, content] of Object.entries(structure)) {
+      const fullPath = join(currentPath, name);
+      
+      if (typeof content === 'string') {
+        // If content is a string, create a file
+        writeFileSync(fullPath, content.trim().replace(/^\s+/gm, ''));
+      } else if (typeof content === 'object') {
+        // If content is an object, create a directory and recurse
+        mkdirSync(fullPath, { recursive: true });
+        createNestedStructure(content, fullPath);
+      }
+    }
+  };
 
-  // Create test files
-  writeFileSync(
-    join(pythonDir, "convert.py"),
-    'def main():\n    print("python test")\n',
-  );
-  writeFileSync(
-    join(pythonDir, "jump-start.yaml"),
-    "title: Python Script\ndescription: A test script\n",
-  );
-
+  createNestedStructure(fileStructure, tempDir);
   return tempDir;
 };
 
