@@ -31,6 +31,19 @@ const createTestDirectory = (fileStructure: Record<string, any>) => {
   return tempDir;
 };
 
+const fixturePythonScript = {
+  "python/script": {
+    "jump-start.yaml": `
+            title: Python script
+            description: A test script
+        `,
+    "convert.py": `
+            def main():
+                print("python test")
+        `,
+  },
+};
+
 describe("find: integration tests", () => {
   let tempDir: string;
   let instance: Instance;
@@ -40,18 +53,7 @@ describe("find: integration tests", () => {
   });
 
   it("text mode searches the yaml file", async () => {
-    tempDir = createTestDirectory({
-      "python/script": {
-        "jump-start.yaml": `
-            title: Python script
-            description: A test script
-        `,
-        "convert.py": `
-            def main():
-                print("python test")
-        `,
-      },
-    });
+    tempDir = createTestDirectory(fixturePythonScript);
 
     instance = {
       name: "test-user",
@@ -83,6 +85,7 @@ describe("find: integration tests", () => {
         `,
       },
     });
+    tempDir = createTestDirectory(fixturePythonScript);
 
     instance = {
       name: "test-user",
@@ -102,18 +105,7 @@ describe("find: integration tests", () => {
   });
 
   it("text mode does not search the python file", async () => {
-    tempDir = createTestDirectory({
-      "python/script": {
-        "jump-start.yaml": `
-            title: Python script
-            description: A test script
-        `,
-        "convert.py": `
-            def main():
-                print("python test")
-        `,
-      },
-    });
+    tempDir = createTestDirectory(fixturePythonScript);
 
     instance = {
       name: "test-user",
@@ -133,18 +125,7 @@ describe("find: integration tests", () => {
   });
 
   it("code mode searches the python", async () => {
-    tempDir = createTestDirectory({
-      "python/script": {
-        "jump-start.yaml": `
-            title: Python script
-            description: A test script
-        `,
-        "convert.py": `
-            def main():
-                print("python test")
-        `,
-      },
-    });
+    tempDir = createTestDirectory(fixturePythonScript);
 
     instance = {
       name: "test-user",
@@ -155,6 +136,26 @@ describe("find: integration tests", () => {
       instance,
       "python test",
       { text: false, code: true, startersDir: "" },
+      (starter) => {
+        matches.push(`${starter.group}/${starter.starter}`);
+      },
+    );
+
+    expect(matches).toContain("python/script");
+  });
+
+  it("search is case-insensitive", async () => {
+    tempDir = createTestDirectory(fixturePythonScript);
+
+    instance = {
+      name: "test-user",
+      path: tempDir,
+    };
+    const matches: string[] = [];
+    await executeRipgrep(
+      instance,
+      "a test script",
+      { text: true, code: false, startersDir: "" },
       (starter) => {
         matches.push(`${starter.group}/${starter.starter}`);
       },

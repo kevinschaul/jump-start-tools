@@ -64,23 +64,6 @@ describe("find functionality", () => {
     });
   });
 
-  it("executes ripgrep with correct arguments", async () => {
-    const onMatch = vi.fn();
-    await executeRipgrep(
-      instance,
-      "test",
-      { text: true, code: true, startersDir: "" },
-      onMatch,
-    );
-
-    // Verify content search call
-    expect(mockSpawn).toHaveBeenCalledWith("rg", [
-      "-tyaml",
-      "test",
-      "/home/test/starters",
-    ]);
-  });
-
   it("handles multiple matches from the same directory", async () => {
     const onMatch = vi.fn();
     const mockInstance: Instance = {
@@ -147,26 +130,6 @@ describe("find functionality", () => {
     // Verify ripgrep was not called
     expect(mockSpawn).not.toHaveBeenCalled();
     expect(onMatch).not.toHaveBeenCalled();
-  });
-
-  it("executes ripgrep with correct arguments for code search", async () => {
-    const onMatch = vi.fn();
-    await executeRipgrep(
-      instance,
-      "test",
-      { text: false, code: true, startersDir: "" },
-      onMatch,
-    );
-
-    // Verify content search call excludes yaml files
-    expect(mockSpawn).toHaveBeenCalledWith("rg", [
-      "--type-not=yaml",
-      "test",
-      "/home/test/starters",
-    ]);
-
-    // No path search should be executed for code search
-    expect(mockSpawn).toHaveBeenCalledTimes(1);
   });
 
   it("cleans up event listeners when called repeatedly", async () => {

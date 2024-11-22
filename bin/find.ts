@@ -49,22 +49,21 @@ export const executeRipgrep = async (
   }
   const matchingStarters = new Map<string, MatchingStarter>();
 
-  // Search in both file contents and paths
-  let contentArgs: string[] = [];
+  let args: string[] = ["--ignore-case"];
 
   if (opts.text) {
     // For text search, look in yaml files
-    contentArgs.push("-tyaml");
+    args.push("-tyaml");
   } else if (opts.code) {
     // For code search, exclude yaml files
-    contentArgs.push("--type-not=yaml");
+    args.push("--type-not=yaml");
   }
 
-  contentArgs = [...contentArgs, searchTerm, instance.path];
+  args = [...args, searchTerm, instance.path];
 
   return new Promise<void>((resolve, reject) => {
     // Execute content search
-    const contentChild = spawn("rg", contentArgs);
+    const contentChild = spawn("rg", args);
 
     const totalProcesses = 1;
     let completedProcesses = 0;
@@ -77,39 +76,31 @@ export const executeRipgrep = async (
 
     const cleanup = () => {
       if (contentChild.stdout?.removeListener) {
-        contentChild.stdout.removeListener("data", handleContentData);
+        contentChild.stdout.removeListener("data", handleData);
       }
       if (contentChild.stderr?.removeListener) {
         contentChild.stderr.removeListener("data", handleError);
       }
       if (contentChild.removeListener) {
         contentChild.removeListener("error", cleanup);
-        contentChild.removeListener("close", onContentClose);
+        contentChild.removeListener("close", onClose);
       }
     };
 
-    const onContentClose = (code: number) => {
+    const onClose = (code: number) => {
       if (code !== 0 && code !== 1) {
         cleanup();
-        reject(new Error(`ripgrep content search exited with code ${code}`));
+        reject(new Error(`ripgrep search exited with code ${code}`));
       }
       checkComplete();
       cleanup();
-    };
-
-    const onPathClose = (code: number) => {
-      if (code !== 0 && code !== 1) {
-        cleanup();
-        reject(new Error(`ripgrep path search exited with code ${code}`));
-      }
-      checkComplete();
     };
 
     const handleError = (data: Buffer | string) => {
       process.stderr.write(data);
     };
 
-    const handleContentData = (data: Buffer | string) => {
+    const handleData = (data: Buffer | string) => {
       const starter = handleRgStdout({ instance, data });
       if (starter) {
         const key = `${starter.group}/${starter.starter}`;
@@ -120,8 +111,7 @@ export const executeRipgrep = async (
       }
     };
 
-    // Handle content search results
-    contentChild.stdout?.on("data", handleContentData);
+    contentChild.stdout?.on("data", handleData);
     contentChild.stderr?.on("data", handleError);
 
     contentChild.on("error", (err) => {
@@ -129,7 +119,7 @@ export const executeRipgrep = async (
       reject(err);
     });
 
-    contentChild.on("close", onContentClose);
+    contentChild.on("close", onClose);
   });
 };
 
