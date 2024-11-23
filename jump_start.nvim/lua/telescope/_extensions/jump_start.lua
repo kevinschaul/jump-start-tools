@@ -15,13 +15,16 @@ end
 
 local function make_entry_from_jump_start(entry)
 	debug_print("Processing entry:", vim.inspect(entry))
+  -- `jump-start find` prints each result in a tab-delimited format
 	local parts = vim.split(entry, "\t")
+	-- Pop off the first element, which is the full file path
+	local filename = table.remove(parts, 1)
 
 	return {
 		value = entry,
 		ordinal = entry,
-		display = table.concat(parts, " | "),
-		filename = parts[1],
+		display = table.concat(parts, "/"),
+		filename = filename,
 		lnum = 1,
 	}
 end

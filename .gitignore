@@ -51,6 +51,7 @@ public/screenshots
 storybook-static
 
 .aider*
+nvim-debug.log
 
 # This will be a symlink from a jump-start repo
 .env
