@@ -3,6 +3,7 @@
 import { Command } from "commander";
 import configCommand, { Config } from "./config";
 import find, { FindOpts } from "./find";
+import use from "./use";
 import storybook from "./storybook";
 import buildStorybook from "./buildStorybook";
 import updateReadme from "./updateReadme";
@@ -41,6 +42,17 @@ program
       return find(config, searchTerm, { ...options, text });
     }),
   );
+
+program
+  .command("use")
+  .description("Use a starter")
+  .option("--instance <instance>", "Which jump-start instance to use")
+  .option(
+    "--out <dir>",
+    "Where to save the starter. Defaults to the starter's defaultDir.",
+  )
+  .argument("<starter>")
+  .action(withConfig(use));
 
 program
   .command("storybook")
