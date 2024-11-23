@@ -1,7 +1,8 @@
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
+local actions = require("telescope.actions")
+local action_state = require("telescope.actions.state")
 local conf = require("telescope.config").values
-local entry_display = require("telescope.pickers.entry_display")
 
 -- Debug setup
 local log_file = io.open("./nvim-debug.log", "a")
@@ -13,18 +14,35 @@ local function debug_print(...)
 	end
 end
 
+-- Generate the `jump-start use` command for this starter
+local function generate_use_command(entry_parts)
+	return "!jump-start use --instance " .. entry_parts.instance .. " " .. entry_parts.group .. "/" .. entry_parts.name
+end
+
+-- Generate the string to display in Telescope for this starter
+local function generate_display(entry_parts)
+	return entry_parts.instance .. "/" .. entry_parts.group .. "/" .. entry_parts.name
+end
+
 local function make_entry_from_jump_start(entry)
 	debug_print("Processing entry:", vim.inspect(entry))
-  -- `jump-start find` prints each result in a tab-delimited format
-	local parts = vim.split(entry, "\t")
-	-- Pop off the first element, which is the full file path
-	local filename = table.remove(parts, 1)
+	-- `jump-start find` prints each result in a tab-delimited format
+	local parts_raw = vim.split(entry, "\t")
+	local parts = {
+		filename = parts_raw[1],
+		instance = parts_raw[2],
+		group = parts_raw[3],
+		name = parts_raw[4],
+	}
+
+	local use_command = generate_use_command(parts)
+	local display = generate_display(parts)
 
 	return {
-		value = entry,
+		value = use_command,
 		ordinal = entry,
-		display = table.concat(parts, "/"),
-		filename = filename,
+		display = display,
+		filename = parts.filename,
 		lnum = 1,
 	}
 end
@@ -44,6 +62,11 @@ local function find_by(search_type, opts)
 				return { "echo", "" }
 			end, make_entry_from_jump_start),
 			previewer = conf.file_previewer(opts),
+			attach_mappings = function(prompt_bufnr, map)
+				-- Put the `jump-start use` command in the command line
+				actions.select_default:replace(actions.edit_command_line)
+				return true
+			end,
 		})
 		:find()
 end
