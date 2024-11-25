@@ -21,6 +21,11 @@ program.option(
   config.getConfigFile(),
 );
 
+program.option(
+  "--instance <name>",
+  "Which jump-start instance to operate on. Defaults to the instance marked `default` in your config.",
+);
+
 program
   .command("config")
   .description("Print path to your jump-start config file")
@@ -46,7 +51,6 @@ program
 program
   .command("use")
   .description("Use a starter")
-  .option("--instance <instance>", "Which jump-start instance to use")
   .option(
     "--out <dir>",
     "Where to save the starter. Defaults to the starter's defaultDir.",
@@ -91,15 +95,5 @@ program
     process.cwd(),
   )
   .action(updateReadme);
-
-// TODO
-// program
-//   .command("update-screenshots")
-//   .option(
-//     "--starters-dir <dir>",
-//     "Directory where starters are. Defaults to cwd.",
-//     process.cwd(),
-//   )
-//   .action(updateScreenshots);
 
 program.parse();

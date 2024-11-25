@@ -32,7 +32,6 @@ const getDefaultDir = (starterPath) => {
 };
 
 const use = async (config: Settings, starterString: string, opts: UseOpts) => {
-  // TODO default to the default instance
   const instance = config.instances.find((d) => d.name === opts.instance);
 
   if (!instance) {

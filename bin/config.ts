@@ -8,6 +8,7 @@ interface ConfigOpts { }
 export interface Instance {
   name: string;
   path: string;
+  default?: boolean;
 }
 
 export interface Settings {
@@ -19,6 +20,7 @@ const defaultSettings: Settings = {
     {
       path: "",
       name: "",
+      default: true,
     },
   ],
 };
@@ -95,9 +97,8 @@ export class Config {
 
 const configCommand = async (opts: ConfigOpts, command: Command) => {
   const parentOpts = command.parent?.opts() || {};
-  const editor = process.env["EDITOR"] || "vi";
   if (!("configFile" in parentOpts)) {
-    throw new Error(`configFile is reuquired`);
+    throw new Error(`configFile is required`);
   }
   console.log(parentOpts.configFile);
 };
