@@ -29,7 +29,8 @@ local function make_entry_from_jump_start(entry)
 	-- `jump-start find` prints each result in a tab-delimited format
 	local parts_raw = vim.split(entry, "\t")
 	local parts = {
-		filename = parts_raw[1],
+		-- Set filename to the path + jump-start.yaml so the preview shows that info
+		filename = parts_raw[1] .. "/jump-start.yaml",
 		instance = parts_raw[2],
 		group = parts_raw[3],
 		name = parts_raw[4],
