@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { handleStdout, executeSearches } from "./find";
+import { handleLine, executeSearches } from "./find";
 import { Instance } from "./config";
 
 const createMockEventEmitter = () => ({
@@ -37,9 +37,9 @@ describe("find functionality", () => {
     const testData =
       "/home/test/starters/python/script/jump-start.yaml:1:description: A basic Python script";
 
-    const result = handleStdout({
+    const result = handleLine({
       instance,
-      data: testData,
+      line: testData,
     });
 
     expect(result).toEqual({
@@ -52,9 +52,9 @@ describe("find functionality", () => {
   it("correctly parses fd path output", () => {
     const testData = "/home/test/starters/python/test-script/jump-start.yaml";
 
-    const result = handleStdout({
+    const result = handleLine({
       instance,
-      data: testData,
+      line: testData,
     });
 
     expect(result).toEqual({
@@ -62,6 +62,17 @@ describe("find functionality", () => {
       group: "python",
       starter: "test-script",
     });
+  });
+
+  it("correctly handle empty output lines", () => {
+    const testData = "";
+
+    const result = handleLine({
+      instance,
+      line: testData,
+    });
+
+    expect(result).toBeFalsy();
   });
 
   it("handles multiple matches from the same directory", async () => {

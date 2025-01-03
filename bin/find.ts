@@ -8,16 +8,18 @@ type MatchingStarter = {
   starter: string;
 };
 
-export const handleStdout = ({
+export const handleLine = ({
   instance,
-  data,
+  line,
 }: {
   instance: Instance;
-  data: Buffer | string;
+  line: string;
 }) => {
+  if (!line) return null;
+
   // This works for both `rg` and `fd`. `rg` separates paths by colon, and `fd`
   // simply outputs paths.
-  const fullPath = data.toString().split(":")[0];
+  const fullPath = line.split(":")[0];
   const starterPath = path.relative(instance.path, fullPath);
   const parts = starterPath.split(path.sep);
 
@@ -43,7 +45,7 @@ export const executeSearches = async (
       instance,
       searchTerm,
       "rg",
-      ["--smart-case"],
+      ["--files-with-matches", "--smart-case"],
       matchingStarters,
       onMatch,
     ),
@@ -94,14 +96,17 @@ const executeSearch = async (
     };
 
     const handleData = (data: Buffer | string) => {
-      const starter = handleStdout({ instance, data });
-      if (starter) {
-        const key = `${starter.group}/${starter.starter}`;
-        if (!matchingStarters.has(key)) {
-          matchingStarters.set(key, starter);
-          onMatch(starter);
+      const lines = data.toString().split("\n");
+      lines.forEach((line) => {
+        const starter = handleLine({ instance, line });
+        if (starter) {
+          const key = `${starter.group}/${starter.starter}`;
+          if (!matchingStarters.has(key)) {
+            matchingStarters.set(key, starter);
+            onMatch(starter);
+          }
         }
-      }
+      });
     };
 
     childProcess.stdout?.on("data", handleData);
