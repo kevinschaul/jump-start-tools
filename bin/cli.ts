@@ -1,8 +1,8 @@
 #!/usr/bin/env -S npx tsx
 
 import { Command } from "commander";
-import configCommand, { Config } from "./config";
-import find, { FindOpts } from "./find";
+import configCommand, { Config, Settings } from "./config";
+import find from "./find";
 import use from "./use";
 import storybook from "./storybook";
 import buildStorybook from "./buildStorybook";
@@ -11,8 +11,10 @@ import updateReadme from "./updateReadme";
 const program = new Command();
 const config = new Config("jump-start");
 
-const withConfig = (action: Function) => {
-  return action.bind(null, config.load());
+const withConfig = <T extends unknown[], R>(
+  action: (config: Settings, ...args: T) => R,
+) => {
+  return (...args: T) => action(config.load(), ...args);
 };
 
 program.option(
@@ -34,19 +36,8 @@ program
 program
   .command("find")
   .description("Search your installed starters")
-  .option("--no-text", "Don't search the starter text")
-  .option("--code", "Search the starter code")
   .argument("<search-term>")
-  .action(
-    withConfig((config: Config, searchTerm: string, options: FindOpts) => {
-      // text will be true by default
-      // --no-text will set it to false
-      // --code will set it to false (unless --text is explicitly provided)
-      const text = options.code ? false : options.text;
-
-      return find(config, searchTerm, { ...options, text });
-    }),
-  );
+  .action(withConfig(find));
 
 program
   .command("use")

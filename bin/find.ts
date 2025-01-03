@@ -2,11 +2,6 @@ import * as path from "node:path";
 import { spawn } from "node:child_process";
 import { type Instance, type Settings } from "./config";
 
-export type FindOpts = {
-  text: boolean;
-  code: boolean;
-};
-
 type MatchingStarter = {
   path: string;
   group: string;
@@ -37,34 +32,48 @@ export const handleRgStdout = ({
   return { path: pathToStarter, group, starter };
 };
 
-export const executeRipgrep = async (
+export const handleFdStdout = ({
+  instance,
+  data,
+}: {
+  instance: Instance;
+  data: Buffer | string;
+}) => {
+  const fullPath = data.toString();
+  const starterPath = path.relative(instance.path, fullPath);
+  const parts = starterPath.split(path.sep);
+
+  // Validate path structure: should be group/starter/...
+  if (parts.length < 2) return null;
+
+  const group = parts[0];
+  const starter = parts[1];
+
+  // Ensure we have both group and starter
+  if (!group || !starter) return null;
+
+  const pathToStarter = path.join(instance.path, group, starter);
+  return { path: pathToStarter, group, starter };
+};
+
+export const executeSearches = async (
   instance: Instance,
   searchTerm: string,
-  opts: FindOpts,
   onMatch: (starter: MatchingStarter) => void,
 ) => {
-  if (!searchTerm.trim()) {
-    return;
-  }
   const matchingStarters = new Map<string, MatchingStarter>();
 
-  let args: string[] = ["--ignore-case"];
+  let rgArgs: string[] = ["--smart-case"];
+  rgArgs = [...rgArgs, searchTerm, instance.path];
 
-  if (opts.text) {
-    // For text search, look in yaml files
-    args.push("-tyaml");
-  } else if (opts.code) {
-    // For code search, exclude yaml files
-    args.push("--type-not=yaml");
-  }
-
-  args = [...args, searchTerm, instance.path];
+  let fdArgs: string[] = [];
+  fdArgs = [...fdArgs, searchTerm, instance.path];
 
   return new Promise<void>((resolve, reject) => {
-    // Execute content search
-    const contentChild = spawn("rg", args);
+    const rgProcess = spawn("rg", rgArgs);
+    const fdProcess = spawn("fd", fdArgs);
 
-    const totalProcesses = 1;
+    const totalProcesses = 2;
     let completedProcesses = 0;
     const checkComplete = () => {
       completedProcesses++;
@@ -73,33 +82,33 @@ export const executeRipgrep = async (
       }
     };
 
-    const cleanup = () => {
-      if (contentChild.stdout?.removeListener) {
-        contentChild.stdout.removeListener("data", handleData);
+    const rgCleanup = () => {
+      if (rgProcess.stdout?.removeListener) {
+        rgProcess.stdout.removeListener("data", rgHandleData);
       }
-      if (contentChild.stderr?.removeListener) {
-        contentChild.stderr.removeListener("data", handleError);
+      if (rgProcess.stderr?.removeListener) {
+        rgProcess.stderr.removeListener("data", rgHandleError);
       }
-      if (contentChild.removeListener) {
-        contentChild.removeListener("error", cleanup);
-        contentChild.removeListener("close", onClose);
+      if (rgProcess.removeListener) {
+        rgProcess.removeListener("error", rgCleanup);
+        rgProcess.removeListener("close", rgOnClose);
       }
     };
 
-    const onClose = (code: number) => {
+    const rgOnClose = (code: number) => {
       if (code !== 0 && code !== 1) {
-        cleanup();
-        reject(new Error(`ripgrep search exited with code ${code}`));
+        rgCleanup();
+        reject(new Error(`rg search exited with code ${code}`));
       }
       checkComplete();
-      cleanup();
+      rgCleanup();
     };
 
-    const handleError = (data: Buffer | string) => {
+    const rgHandleError = (data: Buffer | string) => {
       process.stderr.write(data);
     };
 
-    const handleData = (data: Buffer | string) => {
+    const rgHandleData = (data: Buffer | string) => {
       const starter = handleRgStdout({ instance, data });
       if (starter) {
         const key = `${starter.group}/${starter.starter}`;
@@ -110,24 +119,71 @@ export const executeRipgrep = async (
       }
     };
 
-    contentChild.stdout?.on("data", handleData);
-    contentChild.stderr?.on("data", handleError);
+    rgProcess.stdout?.on("data", rgHandleData);
+    rgProcess.stderr?.on("data", rgHandleError);
 
-    contentChild.on("error", (err) => {
-      cleanup();
+    rgProcess.on("error", (err) => {
+      rgCleanup();
       reject(err);
     });
 
-    contentChild.on("close", onClose);
+    rgProcess.on("close", rgOnClose);
+
+    const fdCleanup = () => {
+      if (fdProcess.stdout?.removeListener) {
+        fdProcess.stdout.removeListener("data", fdHandleData);
+      }
+      if (fdProcess.stderr?.removeListener) {
+        fdProcess.stderr.removeListener("data", fdHandleError);
+      }
+      if (fdProcess.removeListener) {
+        fdProcess.removeListener("error", fdCleanup);
+        fdProcess.removeListener("close", fdOnClose);
+      }
+    };
+
+    const fdOnClose = (code: number) => {
+      if (code !== 0 && code !== 1) {
+        fdCleanup();
+        reject(new Error(`fd search exited with code ${code}`));
+      }
+      checkComplete();
+      fdCleanup();
+    };
+
+    const fdHandleError = (data: Buffer | string) => {
+      process.stderr.write(data);
+    };
+
+    const fdHandleData = (data: Buffer | string) => {
+      const starter = handleFdStdout({ instance, data });
+      if (starter) {
+        const key = `${starter.group}/${starter.starter}`;
+        if (!matchingStarters.has(key)) {
+          matchingStarters.set(key, starter);
+          onMatch(starter);
+        }
+      }
+    };
+
+    fdProcess.stdout?.on("data", fdHandleData);
+    fdProcess.stderr?.on("data", fdHandleError);
+
+    fdProcess.on("error", (err) => {
+      fdCleanup();
+      reject(err);
+    });
+
+    fdProcess.on("close", fdOnClose);
   });
 };
 
-const find = async (config: Settings, searchTerm: string, opts: FindOpts) => {
+const find = async (config: Settings, searchTerm: string) => {
   if (!searchTerm.trim()) {
     return;
   }
   const promises = config.instances.map((instance) =>
-    executeRipgrep(instance, searchTerm, opts, (starter) => {
+    executeSearches(instance, searchTerm, (starter) => {
       process.stdout.write(
         [starter.path, instance.name, starter.group, starter.starter].join(
           "\t",

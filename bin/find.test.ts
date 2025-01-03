@@ -1,11 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { handleRgStdout, executeRipgrep } from "./find";
+import { handleRgStdout, executeSearches } from "./find";
 import { Instance } from "./config";
 
 const createMockEventEmitter = () => ({
   stdout: { on: vi.fn(), removeListener: vi.fn() },
   stderr: { on: vi.fn(), removeListener: vi.fn() },
-  on: vi.fn((event: string, cb: Function) => {
+  on: vi.fn((event: string, cb: (code: number) => void) => {
     if (event === "close") {
       // Simulate successful close with code 0
       setTimeout(() => cb(0), 0);
@@ -87,7 +87,7 @@ describe("find functionality", () => {
         },
       },
       stderr: { on: vi.fn() },
-      on: vi.fn((event: string, cb: Function) => {
+      on: vi.fn((event: string, cb: (code: number) => void) => {
         if (event === "close") {
           // Simulate successful close with code 0
           setTimeout(() => cb(0), 0);
@@ -97,12 +97,7 @@ describe("find functionality", () => {
 
     mockSpawn.mockReturnValueOnce(mockEventEmitter);
 
-    await executeRipgrep(
-      mockInstance,
-      "d3",
-      { text: true, code: false, startersDir: "" },
-      onMatch,
-    );
+    await executeSearches(mockInstance, "d3", onMatch);
 
     // Verify both matches were found and handled
     expect(onMatch).toHaveBeenCalledTimes(2);
@@ -116,20 +111,6 @@ describe("find functionality", () => {
       group: "react-d3",
       starter: "LineChart",
     });
-  });
-
-  it("handles empty search term without executing search", async () => {
-    const onMatch = vi.fn();
-    await executeRipgrep(
-      instance,
-      "",
-      { text: true, code: true, startersDir: "" },
-      onMatch,
-    );
-
-    // Verify ripgrep was not called
-    expect(mockSpawn).not.toHaveBeenCalled();
-    expect(onMatch).not.toHaveBeenCalled();
   });
 
   it("cleans up event listeners when called repeatedly", async () => {
@@ -148,7 +129,7 @@ describe("find functionality", () => {
         removeListener: mockRemoveAllListeners,
         removeAllListeners: mockRemoveAllListeners,
       },
-      on: vi.fn((event: string, cb: Function) => {
+      on: vi.fn((event: string, cb: (code: number) => void) => {
         if (event === "close") {
           // Simulate successful close with code 0
           setTimeout(() => cb(0), 0);
@@ -159,20 +140,10 @@ describe("find functionality", () => {
 
     mockSpawn.mockReturnValue(mockProcess);
 
-    // Call executeRipgrep multiple times
-    await executeRipgrep(
-      instance,
-      "test",
-      { text: false, code: true, startersDir: "" },
-      onMatch,
-    );
+    // Call executeSearches multiple times
+    await executeSearches(instance, "test", onMatch);
 
-    await executeRipgrep(
-      instance,
-      "test",
-      { text: false, code: true, startersDir: "" },
-      onMatch,
-    );
+    await executeSearches(instance, "test", onMatch);
 
     // Verify removeAllListeners was called for each process component
     expect(mockRemoveAllListeners).toHaveBeenCalled();

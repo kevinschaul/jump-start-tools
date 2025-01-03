@@ -3,7 +3,7 @@ import { join } from "path";
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from "fs";
 import { Command } from "commander";
 
-interface ConfigOpts { }
+interface ConfigOpts {}
 
 export interface Instance {
   name: string;

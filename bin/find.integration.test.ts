@@ -1,5 +1,5 @@
 import { describe, expect, it, afterAll } from "vitest";
-import { executeRipgrep } from "./find";
+import { executeSearches } from "./find";
 import { Instance } from "./config";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "fs";
 import { join } from "path";
@@ -32,7 +32,7 @@ const createTestDirectory = (fileStructure: Record<string, any>) => {
 };
 
 const fixturePythonScript = {
-  "python/script": {
+  "python/my-script": {
     "jump-start.yaml": `
             title: Python script
             description: A test script
@@ -52,7 +52,7 @@ describe("find: integration tests", () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it("text mode searches the yaml file", async () => {
+  it("searches the file names", async () => {
     tempDir = createTestDirectory(fixturePythonScript);
 
     instance = {
@@ -60,31 +60,37 @@ describe("find: integration tests", () => {
       path: tempDir,
     };
     const matches: string[] = [];
-    await executeRipgrep(
+    await executeSearches(
+      instance,
+      "my-script",
+      (starter) => {
+        matches.push(`${starter.group}/${starter.starter}`);
+      },
+    );
+
+    expect(matches).toContain("python/my-script");
+  });
+
+  it("searches the yaml file", async () => {
+    tempDir = createTestDirectory(fixturePythonScript);
+
+    instance = {
+      name: "test-user",
+      path: tempDir,
+    };
+    const matches: string[] = [];
+    await executeSearches(
       instance,
       "Python script",
-      { text: true, code: false },
       (starter) => {
         matches.push(`${starter.group}/${starter.starter}`);
       },
     );
 
-    expect(matches).toContain("python/script");
+    expect(matches).toContain("python/my-script");
   });
 
-  it("code mode does not search the yaml file", async () => {
-    tempDir = createTestDirectory({
-      "python/script": {
-        "jump-start.yaml": `
-            title: Python script
-            description: A test script
-        `,
-        "convert.py": `
-            def main():
-                print("python test")
-        `,
-      },
-    });
+  it("searches the code", async () => {
     tempDir = createTestDirectory(fixturePythonScript);
 
     instance = {
@@ -92,56 +98,15 @@ describe("find: integration tests", () => {
       path: tempDir,
     };
     const matches: string[] = [];
-    await executeRipgrep(
-      instance,
-      "Python script",
-      { text: false, code: true },
-      (starter) => {
-        matches.push(`${starter.group}/${starter.starter}`);
-      },
-    );
-
-    expect(matches).toEqual([]);
-  });
-
-  it("text mode does not search the python file", async () => {
-    tempDir = createTestDirectory(fixturePythonScript);
-
-    instance = {
-      name: "test-user",
-      path: tempDir,
-    };
-    const matches: string[] = [];
-    await executeRipgrep(
+    await executeSearches(
       instance,
       "python test",
-      { text: true, code: false },
       (starter) => {
         matches.push(`${starter.group}/${starter.starter}`);
       },
     );
 
-    expect(matches).toEqual([]);
-  });
-
-  it("code mode searches the python", async () => {
-    tempDir = createTestDirectory(fixturePythonScript);
-
-    instance = {
-      name: "test-user",
-      path: tempDir,
-    };
-    const matches: string[] = [];
-    await executeRipgrep(
-      instance,
-      "python test",
-      { text: false, code: true },
-      (starter) => {
-        matches.push(`${starter.group}/${starter.starter}`);
-      },
-    );
-
-    expect(matches).toContain("python/script");
+    expect(matches).toContain("python/my-script");
   });
 
   it("search is case-insensitive", async () => {
@@ -152,15 +117,14 @@ describe("find: integration tests", () => {
       path: tempDir,
     };
     const matches: string[] = [];
-    await executeRipgrep(
+    await executeSearches(
       instance,
       "a test script",
-      { text: true, code: false },
       (starter) => {
         matches.push(`${starter.group}/${starter.starter}`);
       },
     );
 
-    expect(matches).toContain("python/script");
+    expect(matches).toContain("python/my-script");
   });
 });
