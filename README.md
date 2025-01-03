@@ -68,23 +68,18 @@ To install with [lazy.nvim](https://lazy.folke.io/):
 { dir = "~/dev/jump-start-tools/jump_start.nvim" },
 ```
 
-You will have two new Telescope pickers now. Run manually with:
+You will have a new Telescope pickers now. Run manually with:
 
 ```
-:Telescope jump_start find_by_text
-:Telescope jump_start find_by_code
+:Telescope jump_start find
 ```
 
-But you problably want to set up your own mappings. Here are mine:
+But you problably want to set up your own mappings. Here is mine:
 
 ```
 ["<Leader>fj"] = {
-  function() require("telescope").extensions.jump_start.find_by_text() end,
-  desc = "Find jump-starter by text",
-},
-["<Leader>fJ"] = {
-  function() require("telescope").extensions.jump_start.find_by_code() end,
-  desc = "Find jump-starter by code",
+  function() require("telescope").extensions.jump_start.find() end,
+  desc = "Find jump-starter",
 },
 ```
 

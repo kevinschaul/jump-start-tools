@@ -5,7 +5,7 @@ local action_state = require("telescope.actions.state")
 local conf = require("telescope.config").values
 
 -- Debug setup
-local log_file = io.open("./nvim-debug.log", "a")
+-- local log_file = io.open("./nvim-debug.log", "a")
 local function debug_print(...)
 	if log_file then
 		log_file:write(string.format("[%s] ", os.date("%Y-%m-%d %H:%M:%S")))
@@ -16,7 +16,7 @@ end
 
 -- Generate the `jump-start use` command for this starter
 local function generate_use_command(entry_parts)
-	return "!jump-start use --instance " .. entry_parts.instance .. " " .. entry_parts.group .. "/" .. entry_parts.name
+	return "!jump-start use " .. entry_parts.instance .. "/" .. entry_parts.group .. "/" .. entry_parts.name
 end
 
 -- Generate the string to display in Telescope for this starter
@@ -47,16 +47,16 @@ local function make_entry_from_jump_start(entry)
 	}
 end
 
-local function find_by(search_type, opts)
+local function find(opts)
 	opts = opts or {}
 
 	pickers
 		.new(opts, {
-			prompt_title = "jump-start find by " .. search_type,
+			prompt_title = "jump-start find",
 			finder = finders.new_job(function(prompt)
 				-- Only send the search if there's a prompt
 				if prompt ~= "" then
-					return { "jump-start", "find", "--" .. search_type, prompt }
+					return { "jump-start", "find", prompt }
 				end
 				-- Return empty results for empty prompt
 				return { "echo", "" }
@@ -71,14 +71,6 @@ local function find_by(search_type, opts)
 		:find()
 end
 
-local function find_by_text(opts)
-	return find_by("text", opts)
-end
-
-local function find_by_code(opts)
-	return find_by("code", opts)
-end
-
 local function setup(ext_config, config)
 	-- ext_config and config are optional
 end
@@ -86,7 +78,6 @@ end
 return require("telescope").register_extension({
 	setup = setup,
 	exports = {
-		find_by_text = find_by_text,
-		find_by_code = find_by_code,
+		find = find,
 	},
 })
