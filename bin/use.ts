@@ -1,13 +1,12 @@
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
-// @ts-ignore
 import yaml from "js-yaml";
 import { type Settings } from "./config";
 import { Starter } from "../src/types";
 import { getStarterFiles } from "../src/util/parseStarters";
+import { parseStarterString } from "./util";
 
 type UseOpts = {
-  instance?: string;
   out?: string;
 };
 
@@ -17,7 +16,7 @@ type MatchingStarter = {
   starter: string;
 };
 
-const getDefaultDir = (starterPath) => {
+const getDefaultDir = (starterPath: string) => {
   try {
     const starter = yaml.load(
       readFileSync(join(starterPath, "jump-start.yaml"), "utf8"),
@@ -31,19 +30,26 @@ const getDefaultDir = (starterPath) => {
   }
 };
 
-const use = async (config: Settings, starterString: string, opts: UseOpts) => {
-  const instance = config.instances.find((d) => d.name === opts.instance);
+const getDefaultInstanceName = (config: Settings) => {
+  return (config.instances.find((d) => d.default) || config.instances[0]).name;
+};
 
+const use = async (config: Settings, starterString: string, opts: UseOpts) => {
+  const parsed = parseStarterString(starterString);
+  if (!parsed.instanceName) {
+    parsed.instanceName = getDefaultInstanceName(config);
+  }
+
+  const instance = config.instances.find((d) => d.name === parsed.instanceName);
   if (!instance) {
-    console.error(`Instance not found: ${opts.instance}`);
+    console.error(`Instance not found: ${parsed.instanceName}`);
     process.exit(1);
   }
 
-  const [groupName, starterName] = starterString.split("/");
   const starter = {
-    path: join(instance.path, groupName, starterName),
-    group: groupName,
-    starter: starterName,
+    path: join(instance.path, parsed.groupName, parsed.starterName),
+    group: parsed.groupName,
+    starter: parsed.starterName,
   } as MatchingStarter;
 
   const cwd = process.cwd();

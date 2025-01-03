@@ -3,8 +3,6 @@ import { join } from "path";
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from "fs";
 import { Command } from "commander";
 
-interface ConfigOpts {}
-
 export interface Instance {
   name: string;
   path: string;
@@ -95,7 +93,7 @@ export class Config {
   }
 }
 
-const configCommand = async (opts: ConfigOpts, command: Command) => {
+const configCommand = async (opts: null, command: Command) => {
   const parentOpts = command.parent?.opts() || {};
   if (!("configFile" in parentOpts)) {
     throw new Error(`configFile is required`);

@@ -41,12 +41,12 @@ program
 
 program
   .command("use")
-  .description("Use a starter")
+  .description("Use a starter. Specify the starter with `<group>/<starter>` or `<instance>/<group>/<starter>`.")
   .option(
     "--out <dir>",
     "Where to save the starter. Defaults to the starter's defaultDir.",
   )
-  .argument("<starter>")
+  .argument("<starter-string>")
   .action(withConfig(use));
 
 program

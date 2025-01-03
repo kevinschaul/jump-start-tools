@@ -31,3 +31,22 @@ export function spawnWithIO(
     console.log(`child process exited with code ${code}`);
   });
 }
+
+export function parseStarterString(starterString: string) {
+  const parts = starterString.split("/");
+  if (parts.length === 3) {
+    return {
+      instanceName: parts[0],
+      groupName: parts[1],
+      starterName: parts[2],
+    };
+  } else if (parts.length === 2) {
+    return {
+      instanceName: null,
+      groupName: parts[0],
+      starterName: parts[1],
+    };
+  } else {
+    throw Error(`Could not parse starter string: ${starterString}`);
+  }
+}
