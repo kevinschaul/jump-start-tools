@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { handleRgStdout, executeSearches } from "./find";
+import { handleStdout, executeSearches } from "./find";
 import { Instance } from "./config";
 
 const createMockEventEmitter = () => ({
@@ -37,7 +37,7 @@ describe("find functionality", () => {
     const testData =
       "/home/test/starters/python/script/jump-start.yaml:1:description: A basic Python script";
 
-    const result = handleRgStdout({
+    const result = handleStdout({
       instance,
       data: testData,
     });
@@ -49,10 +49,10 @@ describe("find functionality", () => {
     });
   });
 
-  it("correctly parses ripgrep path output", () => {
+  it("correctly parses fd path output", () => {
     const testData = "/home/test/starters/python/test-script/jump-start.yaml";
 
-    const result = handleRgStdout({
+    const result = handleStdout({
       instance,
       data: testData,
     });

@@ -8,46 +8,22 @@ type MatchingStarter = {
   starter: string;
 };
 
-export const handleRgStdout = ({
+export const handleStdout = ({
   instance,
   data,
 }: {
   instance: Instance;
   data: Buffer | string;
 }) => {
+  // This works for both `rg` and `fd`. `rg` separates paths by colon, and `fd`
+  // simply outputs paths.
   const fullPath = data.toString().split(":")[0];
   const starterPath = path.relative(instance.path, fullPath);
   const parts = starterPath.split(path.sep);
 
   // Validate path structure: should be group/starter/...
   if (parts.length < 2) return null;
-
-  const group = parts[0];
-  const starter = parts[1];
-
-  // Ensure we have both group and starter
-  if (!group || !starter) return null;
-
-  const pathToStarter = path.join(instance.path, group, starter);
-  return { path: pathToStarter, group, starter };
-};
-
-export const handleFdStdout = ({
-  instance,
-  data,
-}: {
-  instance: Instance;
-  data: Buffer | string;
-}) => {
-  const fullPath = data.toString();
-  const starterPath = path.relative(instance.path, fullPath);
-  const parts = starterPath.split(path.sep);
-
-  // Validate path structure: should be group/starter/...
-  if (parts.length < 2) return null;
-
-  const group = parts[0];
-  const starter = parts[1];
+  const [group, starter] = parts;
 
   // Ensure we have both group and starter
   if (!group || !starter) return null;
@@ -62,54 +38,63 @@ export const executeSearches = async (
   onMatch: (starter: MatchingStarter) => void,
 ) => {
   const matchingStarters = new Map<string, MatchingStarter>();
+  await Promise.all([
+    executeSearch(
+      instance,
+      searchTerm,
+      "rg",
+      ["--smart-case"],
+      matchingStarters,
+      onMatch,
+    ),
+    executeSearch(instance, searchTerm, "fd", [], matchingStarters, onMatch),
+  ]);
+};
 
-  let rgArgs: string[] = ["--smart-case"];
-  rgArgs = [...rgArgs, searchTerm, instance.path];
-
-  let fdArgs: string[] = [];
-  fdArgs = [...fdArgs, searchTerm, instance.path];
-
+const executeSearch = async (
+  instance: Instance,
+  searchTerm: string,
+  command: string,
+  args: string[],
+  matchingStarters: Map<string, MatchingStarter>,
+  onMatch: (starter: MatchingStarter) => void,
+) => {
   return new Promise<void>((resolve, reject) => {
-    const rgProcess = spawn("rg", rgArgs);
-    const fdProcess = spawn("fd", fdArgs);
+    const childProcess = spawn(command, [...args, searchTerm, instance.path]);
 
-    const totalProcesses = 2;
-    let completedProcesses = 0;
-    const checkComplete = () => {
-      completedProcesses++;
-      if (completedProcesses === totalProcesses) {
-        resolve();
+    const cleanup = () => {
+      if (childProcess.stdout?.removeListener) {
+        childProcess.stdout?.removeListener("data", handleData);
+      }
+      if (childProcess.stderr?.removeListener) {
+        childProcess.stderr?.removeListener("data", handleError);
+      }
+      if (childProcess.removeListener) {
+        childProcess.removeListener("error", onError);
+        childProcess.removeListener("close", onClose);
       }
     };
 
-    const rgCleanup = () => {
-      if (rgProcess.stdout?.removeListener) {
-        rgProcess.stdout.removeListener("data", rgHandleData);
-      }
-      if (rgProcess.stderr?.removeListener) {
-        rgProcess.stderr.removeListener("data", rgHandleError);
-      }
-      if (rgProcess.removeListener) {
-        rgProcess.removeListener("error", rgCleanup);
-        rgProcess.removeListener("close", rgOnClose);
-      }
-    };
-
-    const rgOnClose = (code: number) => {
+    const onClose = (code: number) => {
       if (code !== 0 && code !== 1) {
-        rgCleanup();
-        reject(new Error(`rg search exited with code ${code}`));
+        cleanup();
+        reject(new Error(`${command} search exited with code ${code}`));
       }
-      checkComplete();
-      rgCleanup();
+      resolve();
+      cleanup();
     };
 
-    const rgHandleError = (data: Buffer | string) => {
+    const onError = (err: Error) => {
+      cleanup();
+      reject(err);
+    };
+
+    const handleError = (data: Buffer | string) => {
       process.stderr.write(data);
     };
 
-    const rgHandleData = (data: Buffer | string) => {
-      const starter = handleRgStdout({ instance, data });
+    const handleData = (data: Buffer | string) => {
+      const starter = handleStdout({ instance, data });
       if (starter) {
         const key = `${starter.group}/${starter.starter}`;
         if (!matchingStarters.has(key)) {
@@ -119,62 +104,10 @@ export const executeSearches = async (
       }
     };
 
-    rgProcess.stdout?.on("data", rgHandleData);
-    rgProcess.stderr?.on("data", rgHandleError);
-
-    rgProcess.on("error", (err) => {
-      rgCleanup();
-      reject(err);
-    });
-
-    rgProcess.on("close", rgOnClose);
-
-    const fdCleanup = () => {
-      if (fdProcess.stdout?.removeListener) {
-        fdProcess.stdout.removeListener("data", fdHandleData);
-      }
-      if (fdProcess.stderr?.removeListener) {
-        fdProcess.stderr.removeListener("data", fdHandleError);
-      }
-      if (fdProcess.removeListener) {
-        fdProcess.removeListener("error", fdCleanup);
-        fdProcess.removeListener("close", fdOnClose);
-      }
-    };
-
-    const fdOnClose = (code: number) => {
-      if (code !== 0 && code !== 1) {
-        fdCleanup();
-        reject(new Error(`fd search exited with code ${code}`));
-      }
-      checkComplete();
-      fdCleanup();
-    };
-
-    const fdHandleError = (data: Buffer | string) => {
-      process.stderr.write(data);
-    };
-
-    const fdHandleData = (data: Buffer | string) => {
-      const starter = handleFdStdout({ instance, data });
-      if (starter) {
-        const key = `${starter.group}/${starter.starter}`;
-        if (!matchingStarters.has(key)) {
-          matchingStarters.set(key, starter);
-          onMatch(starter);
-        }
-      }
-    };
-
-    fdProcess.stdout?.on("data", fdHandleData);
-    fdProcess.stderr?.on("data", fdHandleError);
-
-    fdProcess.on("error", (err) => {
-      fdCleanup();
-      reject(err);
-    });
-
-    fdProcess.on("close", fdOnClose);
+    childProcess.stdout?.on("data", handleData);
+    childProcess.stderr?.on("data", handleError);
+    childProcess.on("error", onError);
+    childProcess.on("close", onClose);
   });
 };
 
