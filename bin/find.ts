@@ -1,11 +1,15 @@
 import * as path from "node:path";
 import { spawn } from "node:child_process";
+import yaml from "js-yaml";
+import { readFileSync } from "node:fs";
 import { type Instance, type Settings } from "./config";
+import { Starter } from "../src/types";
 
 type MatchingStarter = {
   path: string;
   group: string;
   starter: string;
+  mainFile?: string;
 };
 
 export const handleLine = ({
@@ -116,17 +120,38 @@ const executeSearch = async (
   });
 };
 
+const findMainFile = async (starter: MatchingStarter) => {
+  try {
+    const starterData = yaml.load(
+      readFileSync(path.join(starter.path, "jump-start.yaml"), "utf8"),
+    ) as Starter;
+    starter.mainFile = starterData.mainFile
+  } catch (e) {
+    if (e.code === "ENOENT") {
+      console.error(`Starter not found: ${starter.path}`);
+      process.exit(1);
+    } else throw e;
+  }
+  return starter;
+};
+
 const find = async (config: Settings, searchTerm: string) => {
   if (!searchTerm.trim()) {
     return;
   }
   const promises = config.instances.map((instance) =>
     executeSearches(instance, searchTerm, (starter) => {
-      process.stdout.write(
-        [starter.path, instance.name, starter.group, starter.starter].join(
-          "\t",
-        ) + "\n",
-      );
+      findMainFile(starter).then((starter) => {
+        process.stdout.write(
+          [
+            starter.path,
+            instance.name,
+            starter.group,
+            starter.starter,
+            starter.mainFile,
+          ].join("\t") + "\n",
+        );
+      });
     }),
   );
 
