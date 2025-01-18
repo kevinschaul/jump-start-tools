@@ -4,6 +4,7 @@ import { Command } from "commander";
 import configCommand, { Config, Settings } from "./config";
 import find from "./find";
 import use from "./use";
+import add from "./add";
 import storybook from "./storybook";
 import buildStorybook from "./buildStorybook";
 import updateReadme from "./updateReadme";
@@ -48,6 +49,13 @@ program
   )
   .argument("<starter-string>")
   .action(withConfig(use));
+
+program
+  .command("add")
+  .description("Add a starter. Specify the starter with `<group>/<starter>` or `<instance>/<group>/<starter>`.")
+  .argument("<starter-string>")
+  .argument("<files>")
+  .action(withConfig(add));
 
 program
   .command("storybook")
