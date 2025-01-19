@@ -36,25 +36,25 @@ program
 
 program
   .command("find")
-  .description("Search your installed starters")
+  .description("Search your installed starters. Searches both filenames and file content.")
   .argument("<search-term>")
   .action(withConfig(find));
 
 program
   .command("use")
-  .description("Use a starter. Specify the starter with `<group>/<starter>` or `<instance>/<group>/<starter>`.")
+  .description("Use a starter.")
   .option(
     "--out <dir>",
     "Where to save the starter. Defaults to the starter's defaultDir.",
   )
-  .argument("<starter-string>")
+  .argument("<starter-string>", "Specify the starter with `<group>/<starter>` or `<instance>/<group>/<starter>`.")
   .action(withConfig(use));
 
 program
   .command("add")
-  .description("Add a starter. Specify the starter with `<group>/<starter>` or `<instance>/<group>/<starter>`.")
-  .argument("<starter-string>")
-  .argument("<files>")
+  .description("Add a starter.")
+  .argument("<starter-string>", "Specify the starter with `<group>/<starter>` or `<instance>/<group>/<starter>`.")
+  .argument("<files>", "A JSON string containing an array of files to add, with keys `name` and `contents`.")
   .action(withConfig(add));
 
 program
