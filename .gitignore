@@ -36,6 +36,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# rust
+debug/
+target/
+
 # symlink to the starters when this repo is a submodule of a
 # jump-start repo
 src/starters

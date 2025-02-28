@@ -1,5 +1,9 @@
 use clap::{Parser, Subcommand};
+use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
+use serde_json;
+use std::fs;
+use std::io;
 use std::path::PathBuf;
 
 mod find;
@@ -42,16 +46,35 @@ enum Commands {
     Find { search_term: String },
 }
 
+fn get_config_path() -> PathBuf {
+    let project_dirs =
+        ProjectDirs::from("", "", "jump-start").expect("Could not find OS project directory");
+    let config_path = project_dirs.config_dir().join("config.json");
+    config_path
+}
+
+fn load_config(config_path: &PathBuf) -> Result<Config, io::Error> {
+    let config_contents = fs::read_to_string(config_path).unwrap_or_else(|_| {
+        let default_config = Config::default();
+        let json_contents =
+            serde_json::to_string_pretty(&default_config).expect("Failed to serialize default config");
+        fs::write(config_path, &json_contents).expect("Failed to write default config file");
+        json_contents
+    });
+    let config: Config = serde_json::from_str(&config_contents)?;
+    Ok(config)
+}
+
 fn main() {
     let args = Cli::parse();
-    let config: Config = confy::load("jump-start", "config").expect("Error loading config");
+
+    let config_path = get_config_path();
+    let config = load_config(&config_path).expect("Error reading config file: {}");
 
     // Validate config
-    // TODO don't use confy because it doesn't say where config gets saved
     if config.instances.is_empty() || config.instances[0].name == "" {
-        panic!("Config is missing instances");
+        panic!("Config file is missing instances. Add your instances to the file {:?}", config_path);
     }
-    println!("{:?}", config.instances);
 
     match args.command {
         Commands::Find { search_term } => {
