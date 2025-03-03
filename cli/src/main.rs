@@ -1,5 +1,7 @@
 mod commands;
-use crate::commands::{find, storybook};
+mod utils;
+mod types;
+
 use clap::{Parser, Subcommand};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
@@ -7,23 +9,17 @@ use serde_json;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-
-#[derive(Debug, Serialize, Deserialize)]
-struct ConfigInstance {
-    name: String,
-    path: PathBuf,
-    default: Option<bool>,
-}
+pub use types::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Config {
-    instances: Vec<ConfigInstance>,
+    instances: Vec<JumpStartInstance>,
 }
 
 impl ::std::default::Default for Config {
     fn default() -> Self {
         Self {
-            instances: vec![ConfigInstance {
+            instances: vec![JumpStartInstance {
                 name: "".to_string(),
                 path: PathBuf::new(),
                 default: Some(true),
@@ -41,12 +37,30 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Start the storybook server
-    #[command()]
-    Storybook {},
     /// Find a starter
     #[command(arg_required_else_help = true)]
     Find { search_term: String },
+
+    /// Storybook commands
+    #[command(subcommand)]
+    Storybook(StorybookCommands),
+}
+
+#[derive(Subcommand)]
+enum StorybookCommands {
+    /// Start Storybook development server
+    Dev {
+        /// Port to run Storybook on
+        #[arg(short, long, default_value = "6006")]
+        port: u16,
+    },
+
+    /// Build Storybook for production
+    Prod {
+        /// Output directory
+        #[arg(short, long, default_value = "storybook-static")]
+        output: String,
+    },
 }
 
 fn get_config_path() -> PathBuf {
@@ -76,7 +90,6 @@ fn main() {
     let args = Cli::parse();
 
     let config_path = get_config_path();
-    println!("{:?}", config_path);
     let config = load_config(&config_path).expect("Error reading config file: {}");
 
     // Validate config
@@ -88,11 +101,18 @@ fn main() {
     }
 
     match args.command {
-        Commands::Storybook {} => {
-            storybook::storybook(config);
-        }
         Commands::Find { search_term } => {
-            find::find(config, search_term);
+            commands::find::find(config, search_term);
+        }
+        Commands::Storybook(storybook_command) => {
+            match storybook_command {
+                StorybookCommands::Dev { port } => {
+                    commands::storybook::dev(config, port);
+                },
+                StorybookCommands::Prod { output } => {
+                    commands::storybook::prod(config, output);
+                },
+            }
         }
     }
 }
