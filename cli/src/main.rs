@@ -1,32 +1,5 @@
-mod commands;
-mod utils;
-mod types;
-
 use clap::{Parser, Subcommand};
-use directories::ProjectDirs;
-use serde::{Deserialize, Serialize};
-use serde_json;
-use std::fs;
-use std::io;
-use std::path::PathBuf;
-pub use types::*;
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Config {
-    instances: Vec<JumpStartInstance>,
-}
-
-impl ::std::default::Default for Config {
-    fn default() -> Self {
-        Self {
-            instances: vec![JumpStartInstance {
-                name: "".to_string(),
-                path: PathBuf::new(),
-                default: Some(true),
-            }],
-        }
-    }
-}
+use jump_start::{commands, get_config_path, load_config};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -63,28 +36,6 @@ enum StorybookCommands {
     },
 }
 
-fn get_config_path() -> PathBuf {
-    let project_dirs =
-        ProjectDirs::from("", "", "jump-start").expect("Could not find OS project directory");
-    let config_path = project_dirs.config_dir().join("config.json");
-    config_path
-}
-
-fn load_config(config_path: &PathBuf) -> Result<Config, io::Error> {
-    if let Some(parent) = config_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-
-    let config_contents = fs::read_to_string(config_path).unwrap_or_else(|_| {
-        let default_config = Config::default();
-        let json_contents = serde_json::to_string_pretty(&default_config)
-            .expect("Failed to serialize default config");
-        fs::write(config_path, &json_contents).expect("Failed to write default config file");
-        json_contents
-    });
-    let config: Config = serde_json::from_str(&config_contents)?;
-    Ok(config)
-}
 
 fn main() {
     let args = Cli::parse();

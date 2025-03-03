@@ -26,7 +26,7 @@ pub fn prod(_config: Config, _output: String) {
     println!("storybook");
 }
 
-fn generate_storybook_files(instance: &PathBuf) -> Result<()> {
+pub fn generate_storybook_files(instance: &PathBuf) -> Result<()> {
     let starters_dir = instance;
     let stories_dir = instance.join(".storybook/stories");
 
@@ -139,7 +139,7 @@ import { Meta, Title } from '@storybook/blocks';
     Ok(())
 }
 
-fn generate_starter_story(
+pub fn generate_starter_story(
     starter: &Starter,
     group_dir: &Path,
     handlebars: &mut Handlebars,
