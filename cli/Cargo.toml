@@ -1,0 +1,18 @@
+[package]
+name = "jump-start"
+description = "The CLI for jump-start: A shortcut to your favorite code"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+directories = "6.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[[bin]]
+name = "jump-start"
+path = "src/main.rs"

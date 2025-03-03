@@ -7,7 +7,7 @@ local utils = require("telescope.utils")
 local log = require("telescope.log")
 
 -- Debug setup
-local log_file = io.open("./nvim-debug.log", "a")
+-- local log_file = io.open("./nvim-debug.log", "a")
 local function debug_print(...)
 	if log_file then
 		log_file:write(string.format("[%s] ", os.date("%Y-%m-%d %H:%M:%S")))

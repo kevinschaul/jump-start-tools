@@ -1,3 +1,5 @@
+mod commands;
+use crate::commands::{find, storybook};
 use clap::{Parser, Subcommand};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
@@ -5,8 +7,6 @@ use serde_json;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-
-mod find;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct ConfigInstance {
@@ -41,6 +41,9 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Start the storybook server
+    #[command()]
+    Storybook {},
     /// Find a starter
     #[command(arg_required_else_help = true)]
     Find { search_term: String },
@@ -54,10 +57,14 @@ fn get_config_path() -> PathBuf {
 }
 
 fn load_config(config_path: &PathBuf) -> Result<Config, io::Error> {
+    if let Some(parent) = config_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
     let config_contents = fs::read_to_string(config_path).unwrap_or_else(|_| {
         let default_config = Config::default();
-        let json_contents =
-            serde_json::to_string_pretty(&default_config).expect("Failed to serialize default config");
+        let json_contents = serde_json::to_string_pretty(&default_config)
+            .expect("Failed to serialize default config");
         fs::write(config_path, &json_contents).expect("Failed to write default config file");
         json_contents
     });
@@ -69,14 +76,21 @@ fn main() {
     let args = Cli::parse();
 
     let config_path = get_config_path();
+    println!("{:?}", config_path);
     let config = load_config(&config_path).expect("Error reading config file: {}");
 
     // Validate config
     if config.instances.is_empty() || config.instances[0].name == "" {
-        panic!("Config file is missing instances. Add your instances to the file {:?}", config_path);
+        panic!(
+            "Config file is missing instances. Add your instances to the file {:?}",
+            config_path
+        );
     }
 
     match args.command {
+        Commands::Storybook {} => {
+            storybook::storybook(config);
+        }
         Commands::Find { search_term } => {
             find::find(config, search_term);
         }
