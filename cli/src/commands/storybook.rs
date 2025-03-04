@@ -10,25 +10,108 @@ use crate::types::Starter;
 use crate::utils::config::*;
 use crate::utils::starter::*;
 
+use std::process::{Command, Stdio};
+use std::thread;
+
+// Template files included at compile-time
+const MAIN_TS: &str = include_str!("../templates/storybook/main.ts");
+const PREVIEW_TS: &str = include_str!("../templates/storybook/preview.ts");
+const STARTER_PREVIEW_TSX: &str = include_str!("../templates/storybook/StarterPreview.tsx");
+const TYPES_TSX: &str = include_str!("../templates/storybook/types.tsx");
+
 pub fn dev(config: Config, port: u16) {
     let instance = get_default_instance(&config);
     println!("Using instance {} ({:?})", instance.name, instance.path);
 
-    if let Err(e) = generate_storybook_files(&instance.path) {
+    // Generate storybook config
+    if let Err(e) = generate_config(&instance.path) {
+        eprintln!("Error generating Storybook config: {}", e);
+        return;
+    }
+
+    // Generate storybook files initially
+    if let Err(e) = generate_stories(&instance.path) {
         eprintln!("Error generating Storybook files: {}", e);
         return;
     }
 
+    // Start the storybook server
     println!("Starting Storybook development server on port {}...", port);
+
+    // Start storybook in a separate thread
+    let storybook_path = instance.path.clone();
+    let port_str = port.to_string();
+    let storybook_thread = thread::spawn(move || {
+        // The storybook command should be run in the instance directory, not the .storybook dir
+        let mut cmd = Command::new("npx");
+        cmd.arg("storybook")
+            .arg("dev")
+            .arg("-p")
+            .arg(port_str)
+            .arg("--ci")
+            .current_dir(&storybook_path)
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit());
+
+        match cmd.spawn() {
+            Ok(mut child) => {
+                if let Err(e) = child.wait() {
+                    eprintln!("Error running Storybook: {}", e);
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to start Storybook: {}", e);
+            }
+        }
+    });
+
+    println!("Press Ctrl+C to stop the server");
+    
+    // Wait for the storybook thread to finish
+    if let Err(e) = storybook_thread.join() {
+        eprintln!("Error joining storybook thread: {:?}", e);
+    }
 }
 
-pub fn prod(_config: Config, _output: String) {
-    println!("storybook");
+pub fn prod(config: Config, output: String) {
+    let instance = get_default_instance(&config);
+    println!("Using instance {} ({:?})", instance.name, instance.path);
+
+    // Generate storybook files
+    if let Err(e) = generate_stories(&instance.path) {
+        eprintln!("Error generating Storybook files: {}", e);
+        return;
+    }
+
+    // Build storybook for production
+    println!("Building Storybook for production to {}", output);
+
+    let output_arg = format!("--output-dir={}", output);
+    let mut cmd = Command::new("npx");
+    cmd.arg("storybook")
+        .arg("build")
+        .arg(output_arg)
+        .current_dir(&instance.path)
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    match cmd.status() {
+        Ok(status) => {
+            if status.success() {
+                println!("Storybook build completed successfully");
+            } else {
+                eprintln!("Storybook build failed with status: {}", status);
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to build Storybook: {}", e);
+        }
+    }
 }
 
-pub fn generate_storybook_files(instance: &PathBuf) -> Result<()> {
-    let starters_dir = instance;
-    let stories_dir = instance.join(".storybook/stories");
+pub fn generate_stories(instance_dir: &PathBuf) -> Result<()> {
+    let starters_dir = instance_dir;
+    let stories_dir = instance_dir.join(".storybook/stories");
 
     // Clean existing stories directory
     if stories_dir.exists() {
@@ -55,7 +138,7 @@ pub fn generate_storybook_files(instance: &PathBuf) -> Result<()> {
             .with_context(|| format!("Failed to create directory for group: {}", group))?;
 
         for starter in starters {
-            generate_starter_story(&starter, &group_dir, &mut handlebars)?;
+            generate_starter_story(&starter, &group_dir, &mut handlebars, starters_dir)?;
         }
     }
 
@@ -63,6 +146,32 @@ pub fn generate_storybook_files(instance: &PathBuf) -> Result<()> {
         "Successfully generated Storybook files at: {}",
         stories_dir.display()
     );
+    Ok(())
+}
+
+/// Creates the configuration files for Storybook using templates embedded at compile-time
+fn generate_config(instance_dir: &PathBuf) -> Result<()> {
+    let storybook_dir = instance_dir.join(".storybook");
+    
+    // Create storybook directory if it doesn't exist
+    if !storybook_dir.exists() {
+        create_dir_all(&storybook_dir)
+            .context("Failed to create .storybook directory")?;
+    }
+    
+    // Write all template files to the storybook directory
+    fs::write(storybook_dir.join("main.ts"), MAIN_TS)
+        .context("Failed to create main.ts configuration file")?;
+    
+    fs::write(storybook_dir.join("preview.ts"), PREVIEW_TS)
+        .context("Failed to create preview.ts configuration file")?;
+    
+    fs::write(storybook_dir.join("StarterPreview.tsx"), STARTER_PREVIEW_TSX)
+        .context("Failed to create StarterPreview.tsx file")?;
+    
+    fs::write(storybook_dir.join("types.tsx"), TYPES_TSX)
+        .context("Failed to create types.tsx file")?;
+    
     Ok(())
 }
 
@@ -143,6 +252,7 @@ pub fn generate_starter_story(
     starter: &Starter,
     group_dir: &Path,
     handlebars: &mut Handlebars,
+    instance_dir: &Path,
 ) -> Result<()> {
     // Register the starter template
     handlebars.register_template_string(
@@ -187,7 +297,9 @@ import starter from './starter.json';
 
     // Get starter files and write files.json
     let starter_files_path = starter_dir.join("files.json");
-    let files = get_starter_files(&starter)?;
+    // Use the instance_dir parameter passed to this function
+    let files = get_starter_files(&starter, instance_dir)?;
+    println!("Starter {}/{} has {} files", starter.group, starter.name, files.len());
     let files_json = serde_json::to_string_pretty(&files)?;
     fs::write(&starter_files_path, files_json).with_context(|| {
         format!(

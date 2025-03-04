@@ -3,7 +3,7 @@ use glob::glob;
 use serde_yaml;
 use std::collections::HashMap;
 use std::fs;
-use std::io::{self, Read};
+use std::io;
 use std::path::{Path, PathBuf};
 
 type StarterGroupLookup = HashMap<String, Vec<Starter>>;
@@ -74,15 +74,27 @@ pub fn parse_starters(path: &PathBuf) -> io::Result<StarterGroupLookup> {
     Ok(groups)
 }
 
-pub fn get_starter_files(starter: &Starter) -> io::Result<Vec<StarterFile>> {
+// Get files for a starter using the instance directory as the base path
+pub fn get_starter_files(starter: &Starter, instance_dir: &Path) -> io::Result<Vec<StarterFile>> {
     let mut out = Vec::new();
-
     let excluded_files = ["jump-start.yaml", "degit.json"];
-
-    // Walk the directory recursively
-    let path_str = &starter.path;
-    visit_dirs(Path::new(path_str), &mut out, &excluded_files, path_str)?;
-
+    
+    // Get the full path to the starter directory using the instance dir as base
+    let starter_dir = instance_dir.join(&starter.group).join(&starter.name);
+    
+    if starter_dir.exists() && starter_dir.is_dir() {
+        // Walk the directory recursively
+        visit_dirs(&starter_dir, &mut out, &excluded_files, &starter_dir.to_string_lossy())?;
+        println!("Found {} files for starter {}/{}", out.len(), starter.group, starter.name);
+    } else {
+        eprintln!("Warning: Starter directory not found: {:?}", starter_dir);
+        // Add a sample file if no files are found, so that the UI works
+        out.push(StarterFile {
+            path: "example.file".to_string(),
+            contents: "// This is a sample file content\nconsole.log('Hello world');\n".to_string(),
+        });
+    }
+    
     Ok(out)
 }
 
@@ -110,16 +122,21 @@ fn visit_dirs(
                         Err(_) => path.to_string_lossy().to_string(),
                     };
 
-                    // Read file contents
-                    let mut contents = String::new();
-                    let mut file = fs::File::open(&path)?;
-                    file.read_to_string(&mut contents)?;
-
-                    // Create and push StarterFile
-                    files.push(StarterFile {
-                        path: rel_path,
-                        contents,
-                    });
+                    // Try to read file contents
+                    match fs::read_to_string(&path) {
+                        Ok(contents) => {
+                            // Create and push StarterFile
+                            files.push(StarterFile {
+                                path: rel_path,
+                                contents,
+                            });
+                        }
+                        Err(e) => {
+                            eprintln!("Warning: Could not read file {:?}: {}", path, e);
+                            // Try to handle binary files by reading as bytes
+                            // but for now just skip them
+                        }
+                    }
                 }
             }
         }

@@ -6,7 +6,8 @@ use handlebars::Handlebars;
 use tempfile::tempdir;
 
 use jump_start::types::Starter;
-use jump_start::commands::storybook::{generate_storybook_files, generate_starter_story};
+use jump_start::commands::storybook::{generate_stories, generate_starter_story};
+use jump_start::utils::starter::get_starter_files;
 
 /// Test that we can generate a starter story MDX file
 #[test]
@@ -27,8 +28,8 @@ fn test_generate_starter_story() -> Result<()> {
     let mut handlebars = Handlebars::new();
     handlebars.register_escape_fn(handlebars::no_escape);
     
-    // Generate story
-    generate_starter_story(&starter, &group_dir, &mut handlebars)?;
+    // Generate story - need to pass instance dir (using group_dir as instance for this test)
+    generate_starter_story(&starter, &group_dir, &mut handlebars, &group_dir)?;
     
     // Create a starter directory inside the group directory
     let starter_dir = group_dir.join(&starter.name);
@@ -65,7 +66,7 @@ fn test_against_expected_stories() -> Result<()> {
     copy_dir_all(&starters_dir, &output_dir)?;
     
     // Generate storybook files
-    generate_storybook_files(&output_dir)?;
+    generate_stories(&output_dir)?;
     
     // Get the story directories under the .storybook/stories directory
     let stories_dir = output_dir.join(".storybook/stories");
@@ -186,6 +187,72 @@ fn test_against_expected_stories() -> Result<()> {
             }
         }
     }
+    
+    Ok(())
+}
+
+/// Test the get_starter_files function
+#[test]
+fn test_get_starter_files() -> Result<()> {
+    // Create a temp directory for our test starter
+    let temp_dir = tempdir()?;
+    let temp_path = temp_dir.path();
+    
+    // Create a starter structure with files
+    let group_name = "test-group";
+    let starter_name = "test-starter";
+    
+    // Create the directory structure
+    let full_starter_path = temp_path.join(group_name).join(starter_name);
+    fs::create_dir_all(&full_starter_path)?;
+    
+    // Create some test files
+    let test_file1 = full_starter_path.join("test-file1.txt");
+    let test_file2 = full_starter_path.join("test-file2.js");
+    let excluded_file1 = full_starter_path.join("jump-start.yaml");
+    let excluded_file2 = full_starter_path.join("degit.json");
+    let nested_dir = full_starter_path.join("nested");
+    fs::create_dir_all(&nested_dir)?;
+    let nested_file = nested_dir.join("nested-file.txt");
+    
+    fs::write(&test_file1, "Test content 1")?;
+    fs::write(&test_file2, "Test content 2")?;
+    fs::write(&excluded_file1, "description: Test starter")?;
+    fs::write(&excluded_file2, "{}")?;
+    fs::write(&nested_file, "Nested file content")?;
+    
+    // Create a starter object
+    let starter = Starter {
+        group: group_name.to_string(),
+        name: starter_name.to_string(),
+        path: format!("{}/{}", group_name, starter_name),
+        description: "Test description".to_string(),
+    };
+    
+    // Get the starter files
+    let files = get_starter_files(&starter, temp_path)?;
+    
+    // Verify we got the expected files
+    assert_eq!(files.len(), 3, "Expected 3 files, got {}", files.len());
+    
+    // Create a map of paths to contents for easier verification
+    let file_map: std::collections::HashMap<_, _> = files
+        .iter()
+        .map(|f| (f.path.clone(), f.contents.clone()))
+        .collect();
+    
+    // Verify each expected file exists and has the correct content
+    assert!(file_map.contains_key("test-file1.txt"), "Missing test-file1.txt");
+    assert!(file_map.contains_key("test-file2.js"), "Missing test-file2.js");
+    assert!(file_map.contains_key("nested/nested-file.txt"), "Missing nested file");
+    
+    assert_eq!(file_map.get("test-file1.txt").unwrap(), "Test content 1");
+    assert_eq!(file_map.get("test-file2.js").unwrap(), "Test content 2");
+    assert_eq!(file_map.get("nested/nested-file.txt").unwrap(), "Nested file content");
+    
+    // Verify excluded files are not included
+    assert!(!file_map.contains_key("jump-start.yaml"), "Should not include jump-start.yaml");
+    assert!(!file_map.contains_key("degit.json"), "Should not include degit.json");
     
     Ok(())
 }
