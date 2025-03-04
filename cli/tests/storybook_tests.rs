@@ -17,7 +17,11 @@ fn test_generate_starter_story() -> Result<()> {
         group: "test-group".to_string(),
         name: "test-starter".to_string(),
         path: "test-group/test-starter".to_string(),
-        description: "Test description".to_string(),
+        description: Some("Test description".to_string()),
+        default_dir: None,
+        main_file: None,
+        preview: None,
+        files: None,
     };
 
     // Create a temp directory for testing
@@ -226,7 +230,11 @@ fn test_get_starter_files() -> Result<()> {
         group: group_name.to_string(),
         name: starter_name.to_string(),
         path: format!("{}/{}", group_name, starter_name),
-        description: "Test description".to_string(),
+        description: Some("Test description".to_string()),
+        default_dir: None,
+        main_file: None,
+        preview: None,
+        files: None,
     };
     
     // Get the starter files

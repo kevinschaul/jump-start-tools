@@ -4,14 +4,13 @@ use serde_json::json;
 use std::fs::{self, File, create_dir_all};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
+use std::thread;
 
 use crate::Config;
 use crate::types::Starter;
 use crate::utils::config::*;
 use crate::utils::starter::*;
-
-use std::process::{Command, Stdio};
-use std::thread;
 
 // Template files included at compile-time
 const MAIN_TS: &str = include_str!("../templates/storybook/main.ts");
@@ -66,7 +65,7 @@ pub fn dev(config: Config, port: u16) {
     });
 
     println!("Press Ctrl+C to stop the server");
-    
+
     // Wait for the storybook thread to finish
     if let Err(e) = storybook_thread.join() {
         eprintln!("Error joining storybook thread: {:?}", e);
@@ -152,26 +151,28 @@ pub fn generate_stories(instance_dir: &PathBuf) -> Result<()> {
 /// Creates the configuration files for Storybook using templates embedded at compile-time
 fn generate_config(instance_dir: &PathBuf) -> Result<()> {
     let storybook_dir = instance_dir.join(".storybook");
-    
+
     // Create storybook directory if it doesn't exist
     if !storybook_dir.exists() {
-        create_dir_all(&storybook_dir)
-            .context("Failed to create .storybook directory")?;
+        create_dir_all(&storybook_dir).context("Failed to create .storybook directory")?;
     }
-    
+
     // Write all template files to the storybook directory
     fs::write(storybook_dir.join("main.ts"), MAIN_TS)
         .context("Failed to create main.ts configuration file")?;
-    
+
     fs::write(storybook_dir.join("preview.ts"), PREVIEW_TS)
         .context("Failed to create preview.ts configuration file")?;
-    
-    fs::write(storybook_dir.join("StarterPreview.tsx"), STARTER_PREVIEW_TSX)
-        .context("Failed to create StarterPreview.tsx file")?;
-    
+
+    fs::write(
+        storybook_dir.join("StarterPreview.tsx"),
+        STARTER_PREVIEW_TSX,
+    )
+    .context("Failed to create StarterPreview.tsx file")?;
+
     fs::write(storybook_dir.join("types.tsx"), TYPES_TSX)
         .context("Failed to create types.tsx file")?;
-    
+
     Ok(())
 }
 
@@ -266,7 +267,7 @@ import starter from './starter.json';
 <Meta title='{{starter.group}}/{{starter.name}}' />
 <Title>{{starter.group}}/{{starter.name}}</Title>
 
-{{{starter.description}}}
+{{{starter_description}}}
 
 [View on GitHub](https://github.com/{{github_username}}/{{github_repo}}/tree/main/{{starter.group}}/{{starter.name}})
 
@@ -299,7 +300,12 @@ import starter from './starter.json';
     let starter_files_path = starter_dir.join("files.json");
     // Use the instance_dir parameter passed to this function
     let files = get_starter_files(&starter, instance_dir)?;
-    println!("Starter {}/{} has {} files", starter.group, starter.name, files.len());
+    println!(
+        "Starter {}/{} has {} files",
+        starter.group,
+        starter.name,
+        files.len()
+    );
     let files_json = serde_json::to_string_pretty(&files)?;
     fs::write(&starter_files_path, files_json).with_context(|| {
         format!(
@@ -320,6 +326,7 @@ import starter from './starter.json';
     // Render the template
     let template_data = json!({
         "starter": starter,
+        "starter_description": starter.description.as_ref().unwrap_or(&"".to_string()),
         "github_username": github_username,
         "github_repo": github_repo,
         "starter_command": starter_command

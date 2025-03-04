@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -8,18 +9,25 @@ pub struct JumpStartInstance {
     pub default: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StarterPreviewConfig {
+    template: Option<String>,
+    dependencies: Option<HashMap<String, String>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Starter {
-    /// Group or category this starter belongs to
-    pub group: String,
-
-    /// Name of this starter within its group
-    pub name: String,
-
     /// Full path identifier (group/name)
     pub path: String,
-
-    pub description: String,
+    /// Group or category this starter belongs to
+    pub group: String,
+    /// Name of this starter within its group
+    pub name: String,
+    pub description: Option<String>,
+    pub default_dir: Option<String>,
+    pub main_file: Option<String>,
+    pub preview: Option<StarterPreviewConfig>,
+    pub files: Option<Vec<StarterFile>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -36,7 +44,11 @@ impl Starter {
             group: group.to_string(),
             name: name.to_string(),
             path,
-            description: String::new(),
+            description: None,
+            default_dir: None,
+            main_file: None,
+            preview: None,
+            files: None,
         }
     }
 

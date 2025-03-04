@@ -28,41 +28,67 @@ pub fn parse_starters(path: &PathBuf) -> io::Result<StarterGroupLookup> {
                 let file_content = fs::read_to_string(&path)?;
                 println!("Parsing YAML file: {}", path.display());
                 println!("Content: {}", file_content);
-                
-                // Create a basic starter first to avoid deserialization issues
-                let mut starter = Starter {
-                    group: String::new(),
-                    name: String::new(),
-                    path: String::new(),
-                    description: String::new(),
-                };
-                
-                // Try to parse the YAML to extract only the description
-                if let Ok(value) = serde_yaml::from_str::<serde_yaml::Value>(&file_content) {
-                    if let Some(description) = value.get("description") {
-                        if let Some(desc_str) = description.as_str() {
-                            starter.description = desc_str.to_string();
-                        }
-                    }
-                }
+
+                // Parse YAML file directly into a Config struct
+                let starter_config: serde_yaml::Value = serde_yaml::from_str(&file_content)
+                    .unwrap_or_else(|_| serde_yaml::Value::Mapping(serde_yaml::Mapping::new()));
 
                 // Get directory information for group and name
                 let current_dir = path.parent().unwrap_or(Path::new(""));
-                let name = current_dir.file_name()
+                let name = current_dir
+                    .file_name()
                     .unwrap_or_else(|| std::ffi::OsStr::new("unknown"))
                     .to_string_lossy()
                     .to_string();
-                
+
                 let parent_dir = current_dir.parent().unwrap_or(Path::new(""));
-                let group = parent_dir.file_name()
+                let group = parent_dir
+                    .file_name()
                     .unwrap_or_else(|| std::ffi::OsStr::new("misc"))
                     .to_string_lossy()
                     .to_string();
-                
-                // Update starter with path information
-                starter.name = name.clone();
-                starter.group = group.clone();
-                starter.path = format!("{}/{}", group, name);
+
+                // Create starter with properties from YAML
+                let mut starter = Starter {
+                    name: name.clone(),
+                    group: group.clone(),
+                    path: format!("{}/{}", group, name),
+                    description: None,
+                    default_dir: None,
+                    main_file: None,
+                    preview: None,
+                    files: None,
+                };
+
+                // Extract fields from YAML
+                if let Some(description) = starter_config.get("description") {
+                    if let Some(desc_str) = description.as_str() {
+                        starter.description = Some(desc_str.to_string());
+                    }
+                }
+
+                if let Some(default_dir) = starter_config.get("defaultDir") {
+                    if let Some(dir_str) = default_dir.as_str() {
+                        starter.default_dir = Some(dir_str.to_string());
+                    }
+                }
+
+                if let Some(main_file) = starter_config.get("mainFile") {
+                    if let Some(file_str) = main_file.as_str() {
+                        starter.main_file = Some(file_str.to_string());
+                    }
+                }
+
+                // Handle preview config if present
+                if let Some(preview) = starter_config.get("preview") {
+                    // Try to deserialize the preview section
+                    if let Ok(preview_config) = serde_yaml::from_value::<
+                        crate::types::StarterPreviewConfig,
+                    >(preview.clone())
+                    {
+                        starter.preview = Some(preview_config);
+                    }
+                }
 
                 // Add to groups
                 groups.entry(group).or_insert_with(Vec::new).push(starter);
@@ -78,14 +104,24 @@ pub fn parse_starters(path: &PathBuf) -> io::Result<StarterGroupLookup> {
 pub fn get_starter_files(starter: &Starter, instance_dir: &Path) -> io::Result<Vec<StarterFile>> {
     let mut out = Vec::new();
     let excluded_files = ["jump-start.yaml", "degit.json"];
-    
+
     // Get the full path to the starter directory using the instance dir as base
     let starter_dir = instance_dir.join(&starter.group).join(&starter.name);
-    
+
     if starter_dir.exists() && starter_dir.is_dir() {
         // Walk the directory recursively
-        visit_dirs(&starter_dir, &mut out, &excluded_files, &starter_dir.to_string_lossy())?;
-        println!("Found {} files for starter {}/{}", out.len(), starter.group, starter.name);
+        visit_dirs(
+            &starter_dir,
+            &mut out,
+            &excluded_files,
+            &starter_dir.to_string_lossy(),
+        )?;
+        println!(
+            "Found {} files for starter {}/{}",
+            out.len(),
+            starter.group,
+            starter.name
+        );
     } else {
         eprintln!("Warning: Starter directory not found: {:?}", starter_dir);
         // Add a sample file if no files are found, so that the UI works
@@ -94,7 +130,7 @@ pub fn get_starter_files(starter: &Starter, instance_dir: &Path) -> io::Result<V
             contents: "// This is a sample file content\nconsole.log('Hello world');\n".to_string(),
         });
     }
-    
+
     Ok(out)
 }
 
