@@ -13,6 +13,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Print path to config file
+    #[command()]
+    Config {},
+
     /// Find a starter
     #[command(arg_required_else_help = true)]
     Find { search_term: String },
@@ -58,6 +62,9 @@ fn main() {
     }
 
     match args.command {
+        Commands::Config {} => {
+            commands::config::config(config);
+        }
         Commands::Find { search_term } => {
             commands::find::find(config, search_term);
         }
