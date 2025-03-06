@@ -1,3 +1,6 @@
+use crate::Config;
+use crate::config::get_default_instance;
+use crate::starter::{Starter, get_starter_command, get_starter_files, parse_starters};
 use anyhow::{Context, Result};
 use handlebars::Handlebars;
 use serde_json::json;
@@ -6,11 +9,6 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::thread;
-
-use crate::Config;
-use crate::types::Starter;
-use crate::utils::config::*;
-use crate::utils::starter::*;
 
 // Template files included at compile-time
 const MAIN_TS: &str = include_str!("../templates/storybook/main.ts");
@@ -348,20 +346,4 @@ import starter from './starter.json';
 
     println!("Generated story for: {}/{}", starter.group, starter.name);
     Ok(())
-}
-
-fn get_starter_command(
-    starter: &Starter,
-    github_username: &str,
-    github_repo: &str,
-    degit_mode: &str,
-) -> String {
-    if degit_mode == "true" {
-        format!(
-            "npx degit {}/{}#{}/{} {}",
-            github_username, github_repo, starter.group, starter.name, starter.name
-        )
-    } else {
-        format!("jump-start add {}/{}", starter.group, starter.name)
-    }
 }

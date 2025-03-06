@@ -1,5 +1,8 @@
 use clap::{Parser, Subcommand};
-use jump_start::{commands, get_config_path, load_config};
+use jump_start::{
+    commands,
+    config::{get_config_path, load_config},
+};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -17,6 +20,10 @@ enum Commands {
     /// Storybook commands
     #[command(subcommand)]
     Storybook(StorybookCommands),
+
+    /// Update readme
+    #[command()]
+    UpdateReadme {},
 }
 
 #[derive(Subcommand)]
@@ -36,7 +43,6 @@ enum StorybookCommands {
     },
 }
 
-
 fn main() {
     let args = Cli::parse();
 
@@ -55,15 +61,17 @@ fn main() {
         Commands::Find { search_term } => {
             commands::find::find(config, search_term);
         }
-        Commands::Storybook(storybook_command) => {
-            match storybook_command {
-                StorybookCommands::Dev { port } => {
-                    commands::storybook::dev(config, port);
-                },
-                StorybookCommands::Prod { output } => {
-                    commands::storybook::prod(config, output);
-                },
+        Commands::Storybook(storybook_command) => match storybook_command {
+            StorybookCommands::Dev { port } => {
+                commands::storybook::dev(config, port);
             }
+            StorybookCommands::Prod { output } => {
+                commands::storybook::prod(config, output);
+            }
+        },
+        Commands::UpdateReadme {} => {
+            // TODO why does this require a return but the other commands do not?
+            let _ = commands::update_readme::update_readme(config);
         }
     }
 }
