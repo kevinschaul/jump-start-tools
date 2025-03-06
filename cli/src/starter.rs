@@ -19,6 +19,48 @@ pub struct StarterPreviewConfig {
     dependencies: Option<HashMap<String, String>>,
 }
 
+/// A string idenfitying a starter. Takes the form "[INSTANCE]/GROUP/NAME", where INSTANCE, if
+/// unspecified, defaults to the default instance.
+// pub type StarterIdentifier = String;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RemoteStarter {
+    pub github_username: String,
+    pub github_repo: String,
+    pub group: String,
+    pub name: String,
+}
+
+impl RemoteStarter {
+    pub fn new(github_username: &str, github_repo: &str, group: &str, name: &str) -> Self {
+        Self {
+            github_username: github_username.to_string(),
+            github_repo: github_repo.to_string(),
+            group: group.to_string(),
+            name: name.to_string(),
+        }
+    }
+
+    /// A string idenfitying a starter. Takes the following form:
+    /// [GITHUB_USERNAME]/[GITHUB_REPO]/GROUP/NAME
+    pub fn from_path(path: &str) -> Option<Self> {
+        let parts: Vec<&str> = path.split('/').collect();
+
+        match parts.len() {
+            2 => {
+                let github_username = "kevinschaul";
+                let github_repo = "jump-start";
+                Some(Self::new(github_username, github_repo, parts[0], parts[1]))
+            }
+            3 => {
+                let github_repo = "jump-start";
+                Some(Self::new(parts[0], github_repo, parts[1], parts[2]))
+            }
+            _ => panic!("Could not parse start from string {:?}", path),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Starter {
     /// Full path identifier (group/name)
