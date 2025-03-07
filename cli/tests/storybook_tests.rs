@@ -3,7 +3,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use handlebars::Handlebars;
-use jump_start::Starter;
+use jump_start::LocalStarter;
 use jump_start::commands::storybook::{generate_starter_story, generate_stories};
 use jump_start::starter::get_starter_files;
 use tempfile::tempdir;
@@ -12,7 +12,7 @@ use tempfile::tempdir;
 #[test]
 fn test_generate_starter_story() -> Result<()> {
     // Create a test starter
-    let starter = Starter {
+    let starter = LocalStarter {
         group: "test-group".to_string(),
         name: "test-starter".to_string(),
         path: "test-group/test-starter".to_string(),
@@ -266,7 +266,7 @@ fn test_get_starter_files() -> Result<()> {
     fs::write(&nested_file, "Nested file content")?;
 
     // Create a starter object
-    let starter = Starter {
+    let starter = LocalStarter {
         group: group_name.to_string(),
         name: starter_name.to_string(),
         path: format!("{}/{}", group_name, starter_name),
