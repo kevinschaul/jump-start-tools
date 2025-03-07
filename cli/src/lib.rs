@@ -15,6 +15,8 @@ pub use starter::RemoteStarter;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JumpStartInstance {
     pub name: String,
+    pub github_username: String,
+    pub github_repo: String,
     pub path: PathBuf,
     pub default: Option<bool>,
 }

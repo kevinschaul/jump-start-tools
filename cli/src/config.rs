@@ -15,6 +15,8 @@ impl ::std::default::Default for Config {
         Self {
             instances: vec![JumpStartInstance {
                 name: "".to_string(),
+                github_username: "".to_string(),
+                github_repo: "jump-start".to_string(),
                 path: PathBuf::new(),
                 default: Some(true),
             }],

@@ -1,10 +1,10 @@
-use crate::{Config, LocalStarter, RemoteStarter};
+use crate::{Config, LocalStarter, RemoteStarter, config::get_default_instance};
 
-pub fn r#use(_config: Config, starter_identifier: &String) {
-    println!("Using {starter_identifier}");
+pub fn r#use(config: Config, starter_identifier: &String) {
+    let instance = get_default_instance(&config);
 
     if starter_identifier.starts_with("@") {
-        let starter = RemoteStarter::from_path(starter_identifier);
+        let starter = RemoteStarter::from_path(starter_identifier, Some(&instance.github_repo));
         println!("Found remote starter {:?}", starter);
     } else {
         let starter = LocalStarter::from_path(starter_identifier);
