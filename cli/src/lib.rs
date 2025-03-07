@@ -9,7 +9,7 @@ pub mod starter;
 
 // Re-export types for convenience
 pub use config::Config;
-pub use starter::Starter;
+pub use starter::LocalStarter;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JumpStartInstance {
@@ -18,4 +18,4 @@ pub struct JumpStartInstance {
     pub default: Option<bool>,
 }
 
-pub type StarterGroupLookup = HashMap<String, Vec<Starter>>;
+pub type LocalStarterGroupLookup = HashMap<String, Vec<LocalStarter>>;

@@ -1,4 +1,4 @@
-use crate::StarterGroupLookup;
+use crate::LocalStarterGroupLookup;
 use glob::glob;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
@@ -8,13 +8,13 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct StarterFile {
+pub struct LocalStarterFile {
     pub path: String,
     pub contents: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct StarterPreviewConfig {
+pub struct LocalStarterPreviewConfig {
     template: Option<String>,
     dependencies: Option<HashMap<String, String>>,
 }
@@ -62,7 +62,7 @@ impl RemoteStarter {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Starter {
+pub struct LocalStarter {
     /// Full path identifier (group/name)
     pub path: String,
     /// Group or category this starter belongs to
@@ -72,11 +72,11 @@ pub struct Starter {
     pub description: Option<String>,
     pub default_dir: Option<String>,
     pub main_file: Option<String>,
-    pub preview: Option<StarterPreviewConfig>,
-    pub files: Option<Vec<StarterFile>>,
+    pub preview: Option<LocalStarterPreviewConfig>,
+    pub files: Option<Vec<LocalStarterFile>>,
 }
 
-impl Starter {
+impl LocalStarter {
     pub fn new(group: &str, name: &str) -> Self {
         let path = format!("{}/{}", group, name);
 
@@ -103,8 +103,8 @@ impl Starter {
     }
 }
 
-pub fn parse_starters(path: &PathBuf) -> io::Result<StarterGroupLookup> {
-    let mut groups: StarterGroupLookup = HashMap::new();
+pub fn parse_starters(path: &PathBuf) -> io::Result<LocalStarterGroupLookup> {
+    let mut groups: LocalStarterGroupLookup = HashMap::new();
 
     // Define the glob pattern
     let pattern = format!("{}/**/*jump-start.yaml", path.display());
@@ -144,7 +144,7 @@ pub fn parse_starters(path: &PathBuf) -> io::Result<StarterGroupLookup> {
                     .to_string();
 
                 // Create starter with properties from YAML
-                let mut starter = Starter {
+                let mut starter = LocalStarter {
                     name: name.clone(),
                     group: group.clone(),
                     path: format!("{}/{}", group, name),
@@ -178,7 +178,7 @@ pub fn parse_starters(path: &PathBuf) -> io::Result<StarterGroupLookup> {
                 if let Some(preview) = starter_config.get("preview") {
                     // Try to deserialize the preview section
                     if let Ok(preview_config) =
-                        serde_yaml::from_value::<StarterPreviewConfig>(preview.clone())
+                        serde_yaml::from_value::<LocalStarterPreviewConfig>(preview.clone())
                     {
                         starter.preview = Some(preview_config);
                     }
@@ -195,7 +195,10 @@ pub fn parse_starters(path: &PathBuf) -> io::Result<StarterGroupLookup> {
 }
 
 // Get files for a starter using the instance directory as the base path
-pub fn get_starter_files(starter: &Starter, instance_dir: &Path) -> io::Result<Vec<StarterFile>> {
+pub fn get_starter_files(
+    starter: &LocalStarter,
+    instance_dir: &Path,
+) -> io::Result<Vec<LocalStarterFile>> {
     let mut out = Vec::new();
     let excluded_files = ["jump-start.yaml", "degit.json"];
 
@@ -219,7 +222,7 @@ pub fn get_starter_files(starter: &Starter, instance_dir: &Path) -> io::Result<V
     } else {
         eprintln!("Warning: Starter directory not found: {:?}", starter_dir);
         // Add a sample file if no files are found, so that the UI works
-        out.push(StarterFile {
+        out.push(LocalStarterFile {
             path: "example.file".to_string(),
             contents: "// This is a sample file content\nconsole.log('Hello world');\n".to_string(),
         });
@@ -230,7 +233,7 @@ pub fn get_starter_files(starter: &Starter, instance_dir: &Path) -> io::Result<V
 
 fn visit_dirs(
     dir: &Path,
-    files: &mut Vec<StarterFile>,
+    files: &mut Vec<LocalStarterFile>,
     excluded_files: &[&str],
     base_path: &str,
 ) -> io::Result<()> {
@@ -256,7 +259,7 @@ fn visit_dirs(
                     match fs::read_to_string(&path) {
                         Ok(contents) => {
                             // Create and push StarterFile
-                            files.push(StarterFile {
+                            files.push(LocalStarterFile {
                                 path: rel_path,
                                 contents,
                             });
@@ -276,7 +279,7 @@ fn visit_dirs(
 }
 
 pub fn get_starter_command(
-    starter: &Starter,
+    starter: &LocalStarter,
     github_username: &str,
     github_repo: &str,
     degit_mode: &str,

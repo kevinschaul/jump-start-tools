@@ -1,6 +1,6 @@
 use crate::Config;
 use crate::config::get_default_instance;
-use crate::starter::{Starter, get_starter_command, get_starter_files, parse_starters};
+use crate::starter::{LocalStarter, get_starter_command, get_starter_files, parse_starters};
 use anyhow::{Context, Result};
 use handlebars::Handlebars;
 use serde_json::json;
@@ -248,7 +248,7 @@ import { Meta, Title } from '@storybook/blocks';
 }
 
 pub fn generate_starter_story(
-    starter: &Starter,
+    starter: &LocalStarter,
     group_dir: &Path,
     handlebars: &mut Handlebars,
     instance_dir: &Path,
