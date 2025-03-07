@@ -50,7 +50,7 @@ impl RemoteStarter {
     ///
     /// ```
     /// use jump_start::RemoteStarter;
-    /// let starter = RemoteStarter::from_path("@kevinschaul/react-d3/Chart", None).unwrap();
+    /// let starter = RemoteStarter::from_path("@kevinschaul/react-d3/Chart").unwrap();
     /// assert_eq!(starter.github_username, "kevinschaul");
     /// assert_eq!(starter.github_repo, "jump-start");
     /// assert_eq!(starter.group, "react-d3");
@@ -59,7 +59,7 @@ impl RemoteStarter {
     ///
     /// ```
     /// use jump_start::RemoteStarter;
-    /// let starter = RemoteStarter::from_path("@kevinschaul/starters/react-d3/Chart", None).unwrap();
+    /// let starter = RemoteStarter::from_path("@kevinschaul/starters/react-d3/Chart").unwrap();
     /// assert_eq!(starter.github_username, "kevinschaul");
     /// assert_eq!(starter.github_repo, "starters");
     /// assert_eq!(starter.group, "react-d3");
@@ -68,21 +68,21 @@ impl RemoteStarter {
     ///
     /// ```should_panic
     /// use jump_start::RemoteStarter;
-    /// let starter = RemoteStarter::from_path("react-d3/Chart", None).unwrap();
+    /// let starter = RemoteStarter::from_path("react-d3/Chart").unwrap();
     /// ```
     ///
     /// ```should_panic
     /// use jump_start::RemoteStarter;
-    /// let starter = RemoteStarter::from_path("@kevinschaul/Chart", None).unwrap();
+    /// let starter = RemoteStarter::from_path("@kevinschaul/Chart").unwrap();
     /// ```
-    pub fn from_path(path: &str, github_repo: Option<&str>) -> Option<Self> {
+    pub fn from_path(path: &str) -> Option<Self> {
         let parts: Vec<&str> = path.split('/').collect();
         // Trim off the leading '@' character
         let github_username = &parts[0][1..];
 
         match parts.len() {
             3 => {
-                let github_repo = github_repo.unwrap_or("jump-start");
+                let github_repo = "jump-start";
                 Some(Self::new(github_username, github_repo, parts[1], parts[2]))
             }
             4 => {
