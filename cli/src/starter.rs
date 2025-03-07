@@ -49,6 +49,9 @@ impl RemoteStarter {
     /// use jump_start::RemoteStarter;
     /// let starter = RemoteStarter::from_path("@kevinschaul/react-d3/Chart").unwrap();
     /// assert_eq!(starter.github_username, "kevinschaul");
+    /// assert_eq!(starter.github_repo, "jump-start");
+    /// assert_eq!(starter.group, "react-d3");
+    /// assert_eq!(starter.name, "Chart");
     /// ```
     pub fn from_path(path: &str) -> Option<Self> {
         let parts: Vec<&str> = path.split('/').collect();
