@@ -10,6 +10,7 @@ pub mod starter;
 // Re-export types for convenience
 pub use config::Config;
 pub use starter::LocalStarter;
+pub use starter::RemoteStarter;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JumpStartInstance {

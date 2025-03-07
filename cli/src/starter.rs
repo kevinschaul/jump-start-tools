@@ -43,6 +43,13 @@ impl RemoteStarter {
 
     /// A string idenfitying a starter. Takes the following form:
     /// [GITHUB_USERNAME]/[GITHUB_REPO]/GROUP/NAME
+    /// # Examples
+    ///
+    /// ```
+    /// use jump_start::RemoteStarter;
+    /// let starter = RemoteStarter::from_path("@kevinschaul/react-d3/Chart").unwrap();
+    /// assert_eq!(starter.github_username, "kevinschaul");
+    /// ```
     pub fn from_path(path: &str) -> Option<Self> {
         let parts: Vec<&str> = path.split('/').collect();
 
@@ -56,7 +63,7 @@ impl RemoteStarter {
                 let github_repo = "jump-start";
                 Some(Self::new(parts[0], github_repo, parts[1], parts[2]))
             }
-            _ => panic!("Could not parse start from string {:?}", path),
+            _ => panic!("Could not parse remote starter from string {:?}", path),
         }
     }
 }
