@@ -14,14 +14,14 @@ pub fn r#use(config: Config, starter_identifier: &str) -> Result<()> {
 
     if starter_identifier.starts_with("@") {
         let starter = RemoteStarter::from_path(starter_identifier).unwrap();
-        info!("Found remote starter {:?}", starter);
+        debug!("Remote starter {:?}", starter);
         let dest = ".";
         let mode = "tar";
 
         clone_remote_starter(starter, dest, mode)?;
     } else {
         let starter = LocalStarter::from_path(starter_identifier);
-        info!("Found local starter {:?}", starter);
+        debug!("Local starter {:?}", starter);
     }
 
     Ok(())
@@ -33,7 +33,7 @@ fn download_tar(url: &String, dest: &Path) -> Result<PathBuf> {
     let file_path = dest.join("HEAD.tar.gz");
     // TODO is this the behavior I want?
     if file_path.exists() {
-        info!("{} already exists locally", file_path.display());
+        debug!("{} already exists locally", file_path.display());
         return Ok(file_path);
     }
 
@@ -54,7 +54,26 @@ fn download_tar(url: &String, dest: &Path) -> Result<PathBuf> {
     Ok(file_path)
 }
 
-fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<()> {
+/// Extracts a subdirectory from a tar.gz archive file to a destination path.
+///
+/// # Arguments
+///
+/// * `tar_path` - Path to the tar.gz archive
+/// * `subdir` - Subdirectory to extract
+/// * `dest` - Destination path
+///
+/// # Examples
+///
+/// ```no_run
+/// # use std::path::Path;
+/// # use jump_start::commands::extract_tar_subdir;
+/// let archive = Path::new("/tmp/repo.tar.gz");
+/// let subdir = "group/starter";
+/// let dest = Path::new("./project");
+///
+/// extract_tar_subdir(archive, subdir, dest).expect("Failed to extract");
+/// ```
+pub fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<()> {
     fs::create_dir_all(dest)?;
 
     let tar_file = File::open(tar_path)?;
@@ -68,7 +87,6 @@ fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<()> 
         let path_str = path.to_string_lossy();
 
         let parts: Vec<&str> = path_str.split('/').collect();
-        // println!("parts: {:?}", parts);
 
         if parts.len() <= 1 {
             // Skip the root directory itself
@@ -145,7 +163,8 @@ fn clone_remote_starter(starter: RemoteStarter, dest: &str, mode: &str) -> Resul
     if mode == "tar" {
         let project_dirs = ProjectDirs::from("", "", "jump-start")
             .unwrap_or_else(|| panic!("Could not find OS project directory"));
-        let cache_dir = project_dirs.cache_dir()
+        let cache_dir = project_dirs
+            .cache_dir()
             .join("github")
             .join(&starter.github_username)
             .join(&starter.github_repo);
