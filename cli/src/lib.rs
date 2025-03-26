@@ -12,8 +12,6 @@ pub use config::Config;
 pub use starter::LocalStarter;
 pub use starter::RemoteStarter;
 
-pub type JumpStartError = Box<dyn std::error::Error + Send + Sync + 'static>;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JumpStartInstance {
     pub name: String,

@@ -3,6 +3,7 @@ use crate::LocalStarterGroupLookup;
 use crate::config::get_default_instance;
 use crate::starter::get_starter_command;
 use crate::starter::parse_starters;
+use anyhow::Result;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -75,7 +76,7 @@ fn rewrite_readme_section(existing_content: &str, section: &str, new_content: &s
     rewritten_lines.join("\n")
 }
 
-pub fn update_readme(config: Config) -> Result<(), crate::JumpStartError> {
+pub fn update_readme(config: Config) -> Result<()> {
     let instance = get_default_instance(&config);
     println!("Using instance {} ({:?})", instance.name, instance.path);
 
@@ -84,11 +85,13 @@ pub fn update_readme(config: Config) -> Result<(), crate::JumpStartError> {
     let groups = parse_starters(&instance.path)?;
     let starters_section = generate_readme_section(&groups);
 
-    let existing_readme = fs::read_to_string(&readme_path).expect("Failed to read README.md");
+    let existing_readme = fs::read_to_string(&readme_path)
+        .map_err(|e| anyhow::anyhow!("Failed to read README.md: {}", e))?;
 
     let updated_readme = rewrite_readme_section(&existing_readme, "## Starters", &starters_section);
 
-    fs::write(&readme_path, updated_readme).expect("Failed to write updated README.md");
+    fs::write(&readme_path, updated_readme)
+        .map_err(|e| anyhow::anyhow!("Failed to write updated README.md: {}", e))?;
 
     Ok(())
 }

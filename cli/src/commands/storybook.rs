@@ -1,6 +1,6 @@
+use crate::Config;
 use crate::config::get_default_instance;
 use crate::starter::{LocalStarter, get_starter_command, get_starter_files, parse_starters};
-use crate::{Config, JumpStartError};
 use anyhow::{Context, Result};
 use handlebars::Handlebars;
 use serde_json::json;
@@ -16,7 +16,7 @@ const PREVIEW_TS: &str = include_str!("../templates/storybook/preview.ts");
 const STARTER_PREVIEW_TSX: &str = include_str!("../templates/storybook/StarterPreview.tsx");
 const TYPES_TSX: &str = include_str!("../templates/storybook/types.tsx");
 
-pub fn dev(config: Config, port: u16) -> Result<(), crate::JumpStartError> {
+pub fn dev(config: Config, port: u16) -> Result<()> {
     let instance = get_default_instance(&config);
     println!("Using instance {} ({:?})", instance.name, instance.path);
 
@@ -59,18 +59,14 @@ pub fn dev(config: Config, port: u16) -> Result<(), crate::JumpStartError> {
     println!("Press Ctrl+C to stop the server");
 
     // Wait for the storybook thread to finish
-    storybook_thread.join().map_err(|e| {
-        // Convert the thread panic error to your error type
-        Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Storybook thread panicked: {:?}", e),
-        ))
-    })?;
+    storybook_thread
+        .join()
+        .map_err(|e| anyhow::anyhow!("Storybook thread panicked: {:?}", e))?;
 
     Ok(())
 }
 
-pub fn prod(config: Config, output: String) -> Result<(), crate::JumpStartError> {
+pub fn prod(config: Config, output: String) -> Result<()> {
     let instance = get_default_instance(&config);
     println!("Using instance {} ({:?})", instance.name, instance.path);
 
@@ -89,21 +85,13 @@ pub fn prod(config: Config, output: String) -> Result<(), crate::JumpStartError>
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
 
-    let status = cmd.status().map_err(|e| -> crate::JumpStartError {
-        Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Failed to execute storybook build: {}", e),
-        ))
-    })?;
+    let status = cmd.status().context("Failed to execute storybook build")?;
 
     if status.success() {
         println!("Storybook build completed successfully");
         Ok(())
     } else {
-        Err(Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Storybook build failed with status: {}", status),
-        )) as crate::JumpStartError)
+        anyhow::bail!("Storybook build failed with status: {}", status)
     }
 }
 

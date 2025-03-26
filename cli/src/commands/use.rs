@@ -1,4 +1,5 @@
 use crate::{Config, LocalStarter, RemoteStarter, config::get_default_instance};
+use anyhow::Result;
 use flate2::read::GzDecoder;
 use reqwest::blocking::Client;
 use std::fs::{self, File};
@@ -6,7 +7,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use tar::Archive;
 
-pub fn r#use(config: Config, starter_identifier: &String) -> Result<(), crate::JumpStartError> {
+pub fn r#use(config: Config, starter_identifier: &String) -> Result<()> {
     let _instance = get_default_instance(&config);
 
     if starter_identifier.starts_with("@") {
@@ -24,7 +25,7 @@ pub fn r#use(config: Config, starter_identifier: &String) -> Result<(), crate::J
     Ok(())
 }
 
-fn download_tar(url: &String, dest: &Path) -> Result<PathBuf, crate::JumpStartError> {
+fn download_tar(url: &String, dest: &Path) -> Result<PathBuf> {
     fs::create_dir_all(dest)?;
 
     let file_path = dest.join("HEAD.tar.gz");
@@ -51,11 +52,7 @@ fn download_tar(url: &String, dest: &Path) -> Result<PathBuf, crate::JumpStartEr
     Ok(file_path)
 }
 
-fn extract_tar_subdir(
-    tar_path: &Path,
-    subdir: &str,
-    dest: &Path,
-) -> Result<(), crate::JumpStartError> {
+fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<()> {
     fs::create_dir_all(dest)?;
 
     let tar_file = File::open(tar_path)?;
@@ -117,34 +114,30 @@ fn extract_tar_subdir(
     if subdir_found {
         Ok(())
     } else {
-        Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Subdirectory not found").into())
+        anyhow::bail!("Subdirectory '{}' not found in archive", subdir)
     }
 }
 
 // Helper function to recursively copy directory contents
-fn copy_dir_contents(src: &Path, dst: &Path) -> Result<(), crate::JumpStartError> {
-    for entry in fs::read_dir(src)? {
-        let entry = entry?;
-        let file_type = entry.file_type()?;
-        let src_path = entry.path();
-        let dst_path = dst.join(entry.file_name());
+// fn copy_dir_contents(src: &Path, dst: &Path) -> Result<()> {
+//     for entry in fs::read_dir(src)? {
+//         let entry = entry?;
+//         let file_type = entry.file_type()?;
+//         let src_path = entry.path();
+//         let dst_path = dst.join(entry.file_name());
+//
+//         if file_type.is_dir() {
+//             fs::create_dir_all(&dst_path)?;
+//             copy_dir_contents(&src_path, &dst_path)?;
+//         } else {
+//             fs::copy(&src_path, &dst_path)?;
+//         }
+//     }
+//
+//     Ok(())
+// }
 
-        if file_type.is_dir() {
-            fs::create_dir_all(&dst_path)?;
-            copy_dir_contents(&src_path, &dst_path)?;
-        } else {
-            fs::copy(&src_path, &dst_path)?;
-        }
-    }
-
-    Ok(())
-}
-
-fn clone_remote_starter(
-    starter: RemoteStarter,
-    dest: &str,
-    mode: &str,
-) -> Result<(), crate::JumpStartError> {
+fn clone_remote_starter(starter: RemoteStarter, dest: &str, mode: &str) -> Result<()> {
     let dest_path = Path::new(dest);
 
     if mode == "tar" {
