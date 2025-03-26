@@ -24,7 +24,10 @@ enum Commands {
 
     /// Use a starter
     #[command(arg_required_else_help = true)]
-    Use { starter_identifier: String },
+    Use {
+        starter_identifier: String,
+        dest: Option<String>,
+    },
 
     /// Find a starter
     #[command(arg_required_else_help = true)]
@@ -111,7 +114,10 @@ fn main() {
 
     let result = match args.command {
         Commands::Config {} => commands::config::config(config),
-        Commands::Use { starter_identifier } => commands::r#use::r#use(config, &starter_identifier),
+        Commands::Use {
+            starter_identifier,
+            dest,
+        } => commands::r#use::r#use(config, &starter_identifier, dest.as_deref()),
         Commands::Find { search_term } => commands::find::find(config, &search_term),
         Commands::Storybook(storybook_command) => match storybook_command {
             StorybookCommands::Dev { port } => commands::storybook::dev(config, port),

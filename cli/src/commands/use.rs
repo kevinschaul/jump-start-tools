@@ -10,13 +10,12 @@ use std::io;
 use std::path::{Path, PathBuf};
 use tar::Archive;
 
-pub fn r#use(config: Config, starter_identifier: &str) -> Result<()> {
+pub fn r#use(config: Config, starter_identifier: &str, dest: Option<&str>) -> Result<()> {
     let _instance = get_default_instance(&config);
 
     if starter_identifier.starts_with("@") {
         let starter = RemoteStarter::from_path(starter_identifier).unwrap();
         debug!("Remote starter {:?}", starter);
-        let dest = ".";
         let mode = "tar";
 
         let ultimate_dest = clone_remote_starter(starter, dest, mode)?;
@@ -157,12 +156,14 @@ pub fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<
     }
 }
 
-fn copy_dir_contents(src: &Path, dst: &Path) -> Result<()> {
+/// Recursively copy the directory `src` to `dest`
+fn copy_dir_contents(src: &Path, dest: &Path) -> Result<()> {
+    fs::create_dir_all(dest)?;
     for entry in fs::read_dir(src)? {
         let entry = entry?;
         let file_type = entry.file_type()?;
         let src_path = entry.path();
-        let dst_path = dst.join(entry.file_name());
+        let dst_path = dest.join(entry.file_name());
 
         if file_type.is_dir() {
             fs::create_dir_all(&dst_path)?;
@@ -175,7 +176,10 @@ fn copy_dir_contents(src: &Path, dst: &Path) -> Result<()> {
     Ok(())
 }
 
-fn clone_remote_starter(starter: RemoteStarter, dest: &str, mode: &str) -> Result<PathBuf> {
+/// Download a starter from GitHub, storing it in `dest`.
+///
+/// `mode` should be "tar" or "git" but "git" is not yet implemented.
+fn clone_remote_starter(starter: RemoteStarter, dest: Option<&str>, mode: &str) -> Result<PathBuf> {
     if mode == "tar" {
         let project_dirs = ProjectDirs::from("", "", "jump-start")
             .unwrap_or_else(|| panic!("Could not find OS project directory"));
@@ -192,9 +196,8 @@ fn clone_remote_starter(starter: RemoteStarter, dest: &str, mode: &str) -> Resul
         );
         let tar_path = download_tar(&tar_url, &cache_dir)?;
         let subdir = format!("{}/{}", starter.group, starter.name);
-
-        // Extract jump-start.yaml from the tar subdir to read `defaultDir`
         let cache_dest = cache_dir.join(&subdir);
+
         extract_tar_subdir(&tar_path, &subdir, &cache_dest)?;
 
         debug!(
@@ -202,18 +205,23 @@ fn clone_remote_starter(starter: RemoteStarter, dest: &str, mode: &str) -> Resul
             tar_path, subdir, cache_dest
         );
 
-        let starter_config_path = cache_dest.join("jump-start.yaml");
-        let file_content = fs::read_to_string(&starter_config_path)?;
-        let starter_config = file_content
-            .parse::<StarterConfig>()
-            .unwrap_or_else(|e| panic!("Could not parse yaml: {:?} {}", cache_dest, e));
+        let final_dest = match dest {
+            Some(dest) => PathBuf::from(&dest),
+            None => {
+                // If `dest` was not specified, read the value from the
+                // starter's jump-start.yaml
+                let starter_config_path = cache_dest.join("jump-start.yaml");
+                let file_content = fs::read_to_string(&starter_config_path)?;
+                let starter_config = file_content
+                    .parse::<StarterConfig>()
+                    .unwrap_or_else(|e| panic!("Could not parse yaml: {:?} {}", cache_dest, e));
 
-        let dest_path = starter_config.default_dir.unwrap_or_default();
-        info!("Using dest_path {:?}", dest_path);
+                starter_config.default_dir.unwrap_or_default()
+            }
+        };
 
-        copy_dir_contents(&cache_dest, &dest_path)?;
-
-        Ok(dest_path)
+        copy_dir_contents(&cache_dest, &final_dest)?;
+        Ok(final_dest)
     } else {
         anyhow::bail!("Not implemented")
     }
