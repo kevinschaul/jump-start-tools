@@ -64,7 +64,7 @@ fn main() {
     };
 
     // Validate config
-    if config.instances.is_empty() || config.instances[0].name == "" {
+    if config.instances.is_empty() || config.instances[0].name.is_empty() {
         eprintln!(
             "Config file is missing instances. Add your instances to the file {:?}",
             config_path

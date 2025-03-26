@@ -7,7 +7,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use tar::Archive;
 
-pub fn r#use(config: Config, starter_identifier: &String) -> Result<()> {
+pub fn r#use(config: Config, starter_identifier: &str) -> Result<()> {
     let _instance = get_default_instance(&config);
 
     if starter_identifier.starts_with("@") {
@@ -40,10 +40,8 @@ fn download_tar(url: &String, dest: &Path) -> Result<PathBuf> {
     let client = Client::new();
     let mut response = client.get(url).send()?;
 
-    if !response.status().is_success() {
-        if !response.status().is_success() {
-            panic!("Failed to download tar: {}", url);
-        }
+    if !response.status().is_success() && !response.status().is_success() {
+        panic!("Failed to download tar: {}", url);
     }
 
     let mut file = File::create(&file_path)?;

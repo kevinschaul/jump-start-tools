@@ -6,7 +6,7 @@ use handlebars::Handlebars;
 use serde_json::json;
 use std::fs::{self, File, create_dir_all};
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::thread;
 
@@ -95,7 +95,7 @@ pub fn prod(config: Config, output: String) -> Result<()> {
     }
 }
 
-pub fn generate_stories(instance_dir: &PathBuf) -> Result<()> {
+pub fn generate_stories(instance_dir: &Path) -> Result<()> {
     let starters_dir = instance_dir;
     let stories_dir = instance_dir.join(".storybook/stories");
 
@@ -136,7 +136,7 @@ pub fn generate_stories(instance_dir: &PathBuf) -> Result<()> {
 }
 
 /// Creates the configuration files for Storybook using templates embedded at compile-time
-fn generate_config(instance_dir: &PathBuf) -> Result<()> {
+fn generate_config(instance_dir: &Path) -> Result<()> {
     let storybook_dir = instance_dir.join(".storybook");
 
     // Create storybook directory if it doesn't exist
@@ -286,7 +286,7 @@ import starter from './starter.json';
     // Get starter files and write files.json
     let starter_files_path = starter_dir.join("files.json");
     // Use the instance_dir parameter passed to this function
-    let files = get_starter_files(&starter, instance_dir)?;
+    let files = get_starter_files(starter, instance_dir)?;
     println!(
         "Starter {}/{} has {} files",
         starter.group,

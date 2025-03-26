@@ -5,7 +5,7 @@ use serde_yaml;
 use std::collections::HashMap;
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LocalStarterFile {
@@ -136,7 +136,7 @@ impl LocalStarter {
     }
 }
 
-pub fn parse_starters(path: &PathBuf) -> io::Result<LocalStarterGroupLookup> {
+pub fn parse_starters(path: &Path) -> io::Result<LocalStarterGroupLookup> {
     let mut groups: LocalStarterGroupLookup = HashMap::new();
 
     // Define the glob pattern
@@ -218,7 +218,7 @@ pub fn parse_starters(path: &PathBuf) -> io::Result<LocalStarterGroupLookup> {
                 }
 
                 // Add to groups
-                groups.entry(group).or_insert_with(Vec::new).push(starter);
+                groups.entry(group).or_default().push(starter);
             }
             Err(e) => eprintln!("Error processing glob entry: {}", e),
         }
