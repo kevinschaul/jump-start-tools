@@ -1,3 +1,4 @@
+use crate::JumpStartInstance;
 use crate::starter::StarterConfig;
 use crate::{Config, LocalStarter, RemoteStarter, config::get_default_instance};
 use anyhow::Result;
@@ -11,7 +12,7 @@ use std::path::{Path, PathBuf};
 use tar::Archive;
 
 pub fn r#use(config: Config, starter_identifier: &str, dest: Option<&str>) -> Result<()> {
-    let _instance = get_default_instance(&config);
+    let instance = get_default_instance(&config);
 
     if starter_identifier.starts_with("@") {
         let starter = RemoteStarter::from_path(starter_identifier).unwrap();
@@ -21,8 +22,11 @@ pub fn r#use(config: Config, starter_identifier: &str, dest: Option<&str>) -> Re
         let ultimate_dest = clone_remote_starter(starter, dest, mode)?;
         info!("{} copied to {:?}", starter_identifier, ultimate_dest)
     } else {
-        let starter = LocalStarter::from_path(starter_identifier);
+        let starter = LocalStarter::from_path(starter_identifier).unwrap();
         debug!("Local starter {:?}", starter);
+
+        let ultimate_dest = clone_local_starter(instance, starter, dest)?;
+        info!("{} copied to {:?}", starter_identifier, ultimate_dest)
     }
 
     Ok(())
@@ -199,30 +203,55 @@ fn clone_remote_starter(starter: RemoteStarter, dest: Option<&str>, mode: &str) 
         let cache_dest = cache_dir.join(&subdir);
 
         extract_tar_subdir(&tar_path, &subdir, &cache_dest)?;
-
         debug!(
             "Extracted {:?} with subdir {:?} to {:?}",
             tar_path, subdir, cache_dest
         );
 
-        let final_dest = match dest {
-            Some(dest) => PathBuf::from(&dest),
-            None => {
-                // If `dest` was not specified, read the value from the
-                // starter's jump-start.yaml
-                let starter_config_path = cache_dest.join("jump-start.yaml");
-                let file_content = fs::read_to_string(&starter_config_path)?;
-                let starter_config = file_content
-                    .parse::<StarterConfig>()
-                    .unwrap_or_else(|e| panic!("Could not parse yaml: {:?} {}", cache_dest, e));
-
-                starter_config.default_dir.unwrap_or_default()
-            }
-        };
+        let final_dest = get_final_dest(&cache_dest, dest)?;
 
         copy_dir_contents(&cache_dest, &final_dest)?;
         Ok(final_dest)
     } else {
         anyhow::bail!("Not implemented")
     }
+}
+
+/// Get the final destination for the starter according to these rules:
+///
+/// 1. If `dest` is specified, use that
+/// 2. If the starter's jump-start.yaml file has "defaultDir" specified, use that
+/// 3. Otherwise use "."
+fn get_final_dest(starter_path_full: &PathBuf, dest: Option<&str>) -> Result<PathBuf> {
+    let final_dest = match dest {
+        Some(dest) => PathBuf::from(&dest),
+        None => {
+            let starter_config_path = starter_path_full.join("jump-start.yaml");
+            let file_content = fs::read_to_string(&starter_config_path)?;
+            let starter_config = file_content
+                .parse::<StarterConfig>()
+                .unwrap_or_else(|e| panic!("Could not parse yaml: {:?} {}", starter_path_full, e));
+
+            // Default to "." if default_dir is None
+            match starter_config.default_dir {
+                Some(dir) if !dir.as_os_str().is_empty() => dir,
+                _ => PathBuf::from("."),
+            }
+        }
+    };
+
+    Ok(final_dest)
+}
+
+/// Copy a starter into `dest`.
+fn clone_local_starter(
+    instance: &JumpStartInstance,
+    starter: LocalStarter,
+    dest: Option<&str>,
+) -> Result<PathBuf> {
+    let starter_path_full = instance.path.join(starter.path);
+    let final_dest = get_final_dest(&starter_path_full, dest)?;
+
+    copy_dir_contents(&starter_path_full, &final_dest)?;
+    Ok(final_dest)
 }
