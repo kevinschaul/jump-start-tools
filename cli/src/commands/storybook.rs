@@ -313,7 +313,7 @@ import starter from './starter.json';
     // Render the template
     let template_data = json!({
         "starter": starter,
-        "starter_description": starter.description.as_ref().unwrap_or(&"".to_string()),
+        "starter_description": starter.config.as_ref().unwrap().description,
         "github_username": github_username,
         "github_repo": github_repo,
         "starter_command": starter_command

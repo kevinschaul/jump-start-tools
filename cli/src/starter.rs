@@ -1,11 +1,38 @@
 use crate::LocalStarterGroupLookup;
 use glob::glob;
+use log::error;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
 use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::path::Path;
+use std::path::PathBuf;
+use std::str::FromStr;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PreviewConfig {
+    pub template: Option<String>,
+    pub dependencies: Option<HashMap<String, String>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StarterConfig {
+    pub description: Option<String>,
+    #[serde(rename = "defaultDir")]
+    pub default_dir: Option<PathBuf>,
+    #[serde(rename = "mainFile")]
+    pub main_file: Option<String>,
+    pub preview: Option<PreviewConfig>,
+}
+
+impl FromStr for StarterConfig {
+    type Err = serde_yaml::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        serde_yaml::from_str(s)
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LocalStarterFile {
@@ -13,16 +40,9 @@ pub struct LocalStarterFile {
     pub contents: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct LocalStarterPreviewConfig {
-    template: Option<String>,
-    dependencies: Option<HashMap<String, String>>,
-}
-
 /// A string idenfitying a starter. Takes the form "[INSTANCE]/GROUP/NAME", where INSTANCE, if
 /// unspecified, defaults to the default instance.
 // pub type StarterIdentifier = String;
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RemoteStarter {
     pub github_username: String,
@@ -102,11 +122,8 @@ pub struct LocalStarter {
     pub group: String,
     /// Name of this starter within its group
     pub name: String,
-    pub description: Option<String>,
-    pub default_dir: Option<String>,
-    pub main_file: Option<String>,
-    pub preview: Option<LocalStarterPreviewConfig>,
-    pub files: Option<Vec<LocalStarterFile>>,
+    /// Configuration stored in the starter's jump-start.yaml file
+    pub config: Option<StarterConfig>,
 }
 
 impl LocalStarter {
@@ -117,11 +134,7 @@ impl LocalStarter {
             group: group.to_string(),
             name: name.to_string(),
             path,
-            description: None,
-            default_dir: None,
-            main_file: None,
-            preview: None,
-            files: None,
+            config: None,
         }
     }
 
@@ -157,67 +170,35 @@ pub fn parse_starters(path: &Path) -> io::Result<LocalStarterGroupLookup> {
                 println!("Parsing YAML file: {}", path.display());
                 println!("Content: {}", file_content);
 
-                // Parse YAML file directly into a Config struct
-                let starter_config: serde_yaml::Value = serde_yaml::from_str(&file_content)
-                    .unwrap_or_else(|_| serde_yaml::Value::Mapping(serde_yaml::Mapping::new()));
+                let starter_config = match file_content.parse::<StarterConfig>() {
+                    Ok(config) => config,
+                    Err(e) => {
+                        error!("Error parsing yaml for {}: {}", path.display(), e);
+                        continue;
+                    }
+                };
 
-                // Get directory information for group and name
-                let current_dir = path.parent().unwrap_or(Path::new(""));
+                let current_dir = path.parent().unwrap();
                 let name = current_dir
                     .file_name()
-                    .unwrap_or_else(|| std::ffi::OsStr::new("unknown"))
+                    .unwrap()
                     .to_string_lossy()
                     .to_string();
-
-                let parent_dir = current_dir.parent().unwrap_or(Path::new(""));
-                let group = parent_dir
+                let group = current_dir
+                    .parent()
+                    .unwrap()
                     .file_name()
-                    .unwrap_or_else(|| std::ffi::OsStr::new("misc"))
+                    .unwrap()
                     .to_string_lossy()
                     .to_string();
 
-                // Create starter with properties from YAML
-                let mut starter = LocalStarter {
+                let starter = LocalStarter {
                     name: name.clone(),
                     group: group.clone(),
                     path: format!("{}/{}", group, name),
-                    description: None,
-                    default_dir: None,
-                    main_file: None,
-                    preview: None,
-                    files: None,
+                    config: Some(starter_config),
                 };
 
-                // Extract fields from YAML
-                if let Some(description) = starter_config.get("description") {
-                    if let Some(desc_str) = description.as_str() {
-                        starter.description = Some(desc_str.to_string());
-                    }
-                }
-
-                if let Some(default_dir) = starter_config.get("defaultDir") {
-                    if let Some(dir_str) = default_dir.as_str() {
-                        starter.default_dir = Some(dir_str.to_string());
-                    }
-                }
-
-                if let Some(main_file) = starter_config.get("mainFile") {
-                    if let Some(file_str) = main_file.as_str() {
-                        starter.main_file = Some(file_str.to_string());
-                    }
-                }
-
-                // Handle preview config if present
-                if let Some(preview) = starter_config.get("preview") {
-                    // Try to deserialize the preview section
-                    if let Ok(preview_config) =
-                        serde_yaml::from_value::<LocalStarterPreviewConfig>(preview.clone())
-                    {
-                        starter.preview = Some(preview_config);
-                    }
-                }
-
-                // Add to groups
                 groups.entry(group).or_default().push(starter);
             }
             Err(e) => eprintln!("Error processing glob entry: {}", e),

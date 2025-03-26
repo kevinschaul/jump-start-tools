@@ -39,8 +39,12 @@ fn generate_readme_section(groups: &LocalStarterGroupLookup) -> String {
                 get_starter_command(data, &github_username, &github_repo, &degit_mode)
             ));
 
-            if let Some(description) = &data.description {
-                output.push(description.clone());
+            if let Some(config) = &data.config {
+                if let Some(description) = &config.description {
+                    if !description.is_empty() {
+                        output.push(description.clone());
+                    }
+                }
             }
 
             output.push("---".to_string());

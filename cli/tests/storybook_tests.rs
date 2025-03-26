@@ -5,7 +5,7 @@ use anyhow::Result;
 use handlebars::Handlebars;
 use jump_start::LocalStarter;
 use jump_start::commands::storybook::{generate_starter_story, generate_stories};
-use jump_start::starter::get_starter_files;
+use jump_start::starter::{StarterConfig, get_starter_files};
 use tempfile::tempdir;
 
 /// Test that we can generate a starter story MDX file
@@ -16,11 +16,12 @@ fn test_generate_starter_story() -> Result<()> {
         group: "test-group".to_string(),
         name: "test-starter".to_string(),
         path: "test-group/test-starter".to_string(),
-        description: Some("Test description".to_string()),
-        default_dir: None,
-        main_file: None,
-        preview: None,
-        files: None,
+        config: Some(StarterConfig {
+            description: Some("Test description".to_string()),
+            default_dir: None,
+            main_file: None,
+            preview: None,
+        }),
     };
 
     // Create a temp directory for testing
@@ -270,11 +271,12 @@ fn test_get_starter_files() -> Result<()> {
         group: group_name.to_string(),
         name: starter_name.to_string(),
         path: format!("{}/{}", group_name, starter_name),
-        description: Some("Test description".to_string()),
-        default_dir: None,
-        main_file: None,
-        preview: None,
-        files: None,
+        config: Some(StarterConfig {
+            description: Some("Test description".to_string()),
+            default_dir: None,
+            main_file: None,
+            preview: None,
+        }),
     };
 
     // Get the starter files
