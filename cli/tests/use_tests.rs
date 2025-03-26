@@ -136,3 +136,32 @@ fn test_extract_tar_subdir_nonexistent_subdir() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn test_extract_tar_subdir_partial() -> Result<()> {
+    let root_dir = "test-repo-root";
+    let real_subdir = "test-group/test-starter";
+
+    let files = vec![(
+        format!("{}/file1.txt", real_subdir),
+        "This is file 1 content",
+    )];
+
+    let (_archive_temp, archive_path) = create_test_archive(root_dir, real_subdir, files)?;
+    let extract_temp = tempdir()?;
+    let extract_path = extract_temp.path();
+
+    let partial_subdir = "test-group/test-star";
+    let result = extract_tar_subdir(&archive_path, partial_subdir, extract_path);
+
+    assert!(
+        result.is_err(),
+        "Function should return an error for subdirectory name that is only partially included"
+    );
+
+    if let Err(e) = result {
+        assert!(e.to_string().contains("not found in archive"));
+    }
+
+    Ok(())
+}

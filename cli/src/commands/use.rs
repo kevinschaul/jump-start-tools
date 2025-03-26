@@ -103,16 +103,33 @@ pub fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<
             continue;
         }
 
-        // Check if the file is in the subdirectory
-        if !rel_path_str.starts_with(subdir) {
+        // Check if the file path is in the subdirectory using Path components
+        // This is more robust than string manipulation
+        let subdir_path = Path::new(subdir);
+
+        // Get the components from both paths for comparison
+        let rel_path_components: Vec<_> = rel_path.components().collect();
+        let subdir_components: Vec<_> = subdir_path.components().collect();
+
+        // Check if rel_path has at least the same components as subdir
+        if rel_path_components.len() < subdir_components.len() {
             continue;
         }
 
-        // Adjust the path to remove the subdirectory prefix
-        let subdir_components = Path::new(subdir).components().count();
-        let final_path = rel_path
-            .components()
-            .skip(subdir_components)
+        // Check if all subdir components match the beginning of rel_path components
+        let is_match = subdir_components
+            .iter()
+            .zip(rel_path_components.iter())
+            .all(|(a, b)| a == b);
+
+        if !is_match {
+            continue;
+        }
+
+        // Use the components we already collected
+        let final_path = rel_path_components
+            .into_iter()
+            .skip(subdir_components.len())
             .collect::<PathBuf>();
 
         // Skip if this was just the directory itself
