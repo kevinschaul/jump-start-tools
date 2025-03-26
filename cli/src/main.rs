@@ -3,12 +3,17 @@ use jump_start::{
     commands,
     config::{get_config_path, load_config},
 };
+use log::{LevelFilter, Log, Metadata, Record, debug, error, set_logger, set_max_level};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+
+    /// Enable verbose output
+    #[arg(short, long)]
+    verbose: bool,
 }
 
 #[derive(Subcommand)]
@@ -53,19 +58,51 @@ enum StorybookCommands {
 
 fn main() {
     let args = Cli::parse();
+
+    // Create a dead simple logger
+    struct SimpleLogger;
+
+    impl Log for SimpleLogger {
+        fn enabled(&self, _metadata: &Metadata) -> bool {
+            true
+        }
+
+        fn log(&self, record: &Record) {
+            // Only prefix debug logs, keep everything else clean
+            match record.level() {
+                log::Level::Debug | log::Level::Trace => println!("[DEBUG] {}", record.args()),
+                _ => println!("{}", record.args()),
+            }
+        }
+
+        fn flush(&self) {}
+    }
+
+    // Set the global logger
+    static LOGGER: SimpleLogger = SimpleLogger;
+    let max_level = if args.verbose {
+        LevelFilter::Debug
+    } else {
+        LevelFilter::Info
+    };
+
+    // We don't need to check result as this only fails if a logger is already set
+    let _ = set_logger(&LOGGER);
+    set_max_level(max_level);
     let config_path = get_config_path();
+    debug!("Using config path: {:?}", config_path);
 
     let config = match load_config(&config_path) {
         Ok(cfg) => cfg,
         Err(err) => {
-            eprintln!("Error reading config file: {}", err);
+            error!("Error reading config file: {}", err);
             std::process::exit(1);
         }
     };
 
     // Validate config
     if config.instances.is_empty() || config.instances[0].name.is_empty() {
-        eprintln!(
+        error!(
             "Config file is missing instances. Add your instances to the file {:?}",
             config_path
         );
@@ -85,7 +122,7 @@ fn main() {
 
     // Handle any errors from commands
     if let Err(err) = result {
-        eprintln!("Error: {}", err);
+        error!("Error: {}", err);
         std::process::exit(1);
     }
 }

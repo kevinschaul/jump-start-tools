@@ -1,6 +1,8 @@
 use crate::{Config, LocalStarter, RemoteStarter, config::get_default_instance};
 use anyhow::Result;
+use directories::ProjectDirs;
 use flate2::read::GzDecoder;
+use log::{debug, info, warn};
 use reqwest::blocking::Client;
 use std::fs::{self, File};
 use std::io;
@@ -12,14 +14,14 @@ pub fn r#use(config: Config, starter_identifier: &str) -> Result<()> {
 
     if starter_identifier.starts_with("@") {
         let starter = RemoteStarter::from_path(starter_identifier).unwrap();
-        println!("Found remote starter {:?}", starter);
+        info!("Found remote starter {:?}", starter);
         let dest = ".";
         let mode = "tar";
 
         clone_remote_starter(starter, dest, mode)?;
     } else {
         let starter = LocalStarter::from_path(starter_identifier);
-        println!("Found local starter {:?}", starter);
+        info!("Found local starter {:?}", starter);
     }
 
     Ok(())
@@ -31,17 +33,19 @@ fn download_tar(url: &String, dest: &Path) -> Result<PathBuf> {
     let file_path = dest.join("HEAD.tar.gz");
     // TODO is this the behavior I want?
     if file_path.exists() {
-        println!("{} already exists locally", file_path.display());
+        info!("{} already exists locally", file_path.display());
         return Ok(file_path);
     }
 
-    println!("Downloading {} to {}", url, file_path.display());
+    info!("Downloading {} to {}", url, file_path.display());
+    debug!("Starting download for tarball from {}", url);
 
     let client = Client::new();
     let mut response = client.get(url).send()?;
 
-    if !response.status().is_success() && !response.status().is_success() {
-        panic!("Failed to download tar: {}", url);
+    if !response.status().is_success() {
+        warn!("HTTP request failed with status: {}", response.status());
+        anyhow::bail!("Failed to download tar: {}", url);
     }
 
     let mut file = File::create(&file_path)?;
@@ -139,9 +143,9 @@ fn clone_remote_starter(starter: RemoteStarter, dest: &str, mode: &str) -> Resul
     let dest_path = Path::new(dest);
 
     if mode == "tar" {
-        let cache_dir = dirs::cache_dir()
-            .unwrap_or_else(|| PathBuf::from("."))
-            .join("jump-start")
+        let project_dirs = ProjectDirs::from("", "", "jump-start")
+            .unwrap_or_else(|| panic!("Could not find OS project directory"));
+        let cache_dir = project_dirs.cache_dir()
             .join("github")
             .join(&starter.github_username)
             .join(&starter.github_repo);
@@ -154,13 +158,13 @@ fn clone_remote_starter(starter: RemoteStarter, dest: &str, mode: &str) -> Resul
         let subdir = format!("{}/{}", starter.group, starter.name);
         extract_tar_subdir(&tar_path, &subdir, dest_path)?;
 
-        println!(
+        info!(
             "Extracted {:?} with subdir {:?} to {:?}",
             tar_path, subdir, dest_path
         );
     }
 
-    // TODO print success message
+    info!("Successfully installed starter");
 
     Ok(())
 }
