@@ -1,167 +1,124 @@
-use std::fs::{self, File};
+use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use flate2::Compression;
-use flate2::write::GzEncoder;
-use jump_start::commands::extract_tar_subdir;
-use tar::Builder;
-use tempfile::{TempDir, tempdir};
+use jump_start::commands::r#use;
+use jump_start::{Config, JumpStartInstance};
+use tempfile::tempdir;
 
-fn create_test_archive(
-    root_dir: &str,
-    _target_subdir: &str,
-    files: Vec<(String, &str)>,
-) -> Result<(TempDir, PathBuf)> {
+fn setup_test_environment() -> Result<(PathBuf, PathBuf)> {
     let temp_dir = tempdir()?;
-    let archive_path = temp_dir.path().join("test_archive.tar.gz");
+    let instance_dir = temp_dir.path().join("instance");
+    let starter_dir = instance_dir.join("group/starter");
 
-    let tar_gz = File::create(&archive_path)?;
-    let enc = GzEncoder::new(tar_gz, Compression::default());
-    let mut builder = Builder::new(enc);
+    // Create starter directory and files
+    fs::create_dir_all(&starter_dir)?;
+    fs::write(starter_dir.join("file1.txt"), "test content 1")?;
+    fs::create_dir_all(starter_dir.join("nested"))?;
+    fs::write(starter_dir.join("nested/file2.txt"), "test content 2")?;
 
-    for (file_path, contents) in files {
-        let full_path = format!("{}/{}", root_dir, file_path);
+    // Create starter config
+    let config_content = r#"
+name: test-starter
+defaultDir: ./test-project
+    "#;
+    fs::write(starter_dir.join("jump-start.yaml"), config_content)?;
 
-        let mut header = tar::Header::new_gnu();
-        header.set_size(contents.len() as u64);
-        header.set_mode(0o644);
-        header.set_cksum();
-        builder.append_data(&mut header, full_path, contents.as_bytes())?;
-    }
-
-    builder.finish()?;
-    Ok((temp_dir, archive_path))
+    Ok((temp_dir.into_path(), instance_dir))
 }
 
 #[test]
-fn test_extract_tar_subdir() -> Result<()> {
-    let root_dir = "test-repo-root";
-    let subdir_path = "test-group/test-starter";
+fn test_use_local_starter() -> Result<()> {
+    // Set up test environment
+    let (temp_dir, instance_dir) = setup_test_environment()?;
+    let dest_dir = temp_dir.join("dest");
 
-    let files = vec![
-        (
-            format!("{}/file1.txt", subdir_path),
-            "This is file 1 content",
-        ),
-        (
-            format!("{}/file2.txt", subdir_path),
-            "This is file 2 content",
-        ),
-        (
-            format!("{}/nested/file3.txt", subdir_path),
-            "This is a nested file",
-        ),
-        (
-            "other-dir/file4.txt".to_string(),
-            "This file should not be extracted",
-        ),
-        (
-            format!("test-group/other-starter/file5.txt"),
-            "This file should not be extracted",
-        ),
-    ];
+    // Create test config
+    let config = Config {
+        instances: vec![JumpStartInstance {
+            name: "test-instance".to_string(),
+            path: instance_dir,
+            default: Some(true),
+        }],
+    };
 
-    let (_archive_temp, archive_path) = create_test_archive(root_dir, subdir_path, files)?;
-    let extract_temp = tempdir()?;
-    let extract_path = extract_temp.path();
+    // Call the use function with a local starter
+    r#use::r#use(config, "group/starter", Some(dest_dir.to_str().unwrap()))?;
 
-    extract_tar_subdir(&archive_path, subdir_path, extract_path)?;
+    // Verify files were copied correctly
+    assert!(dest_dir.join("file1.txt").exists());
+    assert!(dest_dir.join("nested/file2.txt").exists());
 
-    assert!(
-        extract_path.join("file1.txt").exists(),
-        "file1.txt should be extracted"
-    );
-    assert!(
-        extract_path.join("file2.txt").exists(),
-        "file2.txt should be extracted"
-    );
-    assert!(
-        extract_path.join("nested/file3.txt").exists(),
-        "nested/file3.txt should be extracted"
-    );
-
-    assert_eq!(
-        fs::read_to_string(extract_path.join("file1.txt"))?,
-        "This is file 1 content"
-    );
-    assert_eq!(
-        fs::read_to_string(extract_path.join("file2.txt"))?,
-        "This is file 2 content"
-    );
-    assert_eq!(
-        fs::read_to_string(extract_path.join("nested/file3.txt"))?,
-        "This is a nested file"
-    );
-
-    assert!(
-        !extract_path.join("other-dir/file4.txt").exists(),
-        "file4.txt should not be extracted"
-    );
-    assert!(
-        !extract_path
-            .join("test-group/other-starter/file5.txt")
-            .exists(),
-        "file5.txt should not be extracted"
-    );
+    // Check content of files
+    let file1_content = fs::read_to_string(dest_dir.join("file1.txt"))?;
+    assert_eq!(file1_content, "test content 1");
 
     Ok(())
 }
 
 #[test]
-fn test_extract_tar_subdir_nonexistent_subdir() -> Result<()> {
-    let root_dir = "test-repo-root";
-    let real_subdir = "test-group/test-starter";
+fn test_use_local_starter_default_path() -> Result<()> {
+    // Set up test environment
+    let (temp_dir, instance_dir) = setup_test_environment()?;
 
-    let files = vec![(
-        format!("{}/file1.txt", real_subdir),
-        "This is file 1 content",
-    )];
+    // Create test config
+    let config = Config {
+        instances: vec![JumpStartInstance {
+            name: "test-instance".to_string(),
+            path: instance_dir,
+            default: Some(true),
+        }],
+    };
 
-    let (_archive_temp, archive_path) = create_test_archive(root_dir, real_subdir, files)?;
-    let extract_temp = tempdir()?;
-    let extract_path = extract_temp.path();
+    // Set current directory to temp_dir for this test
+    let original_dir = std::env::current_dir()?;
+    std::env::set_current_dir(&temp_dir)?;
 
-    let nonexistent_subdir = "nonexistent/directory";
-    let result = extract_tar_subdir(&archive_path, nonexistent_subdir, extract_path);
+    // Call the use function with default destination (from config)
+    r#use::r#use(config, "group/starter", None)?;
 
-    assert!(
-        result.is_err(),
-        "Function should return an error for nonexistent subdirectory"
-    );
+    // Test project directory should be created based on the config
+    let project_dir = temp_dir.join("test-project");
+    assert!(project_dir.join("file1.txt").exists());
+    assert!(project_dir.join("nested/file2.txt").exists());
 
-    if let Err(e) = result {
-        assert!(e.to_string().contains("not found in archive"));
-    }
-
-    Ok(())
-}
-
-#[test]
-fn test_extract_tar_subdir_partial() -> Result<()> {
-    let root_dir = "test-repo-root";
-    let real_subdir = "test-group/test-starter";
-
-    let files = vec![(
-        format!("{}/file1.txt", real_subdir),
-        "This is file 1 content",
-    )];
-
-    let (_archive_temp, archive_path) = create_test_archive(root_dir, real_subdir, files)?;
-    let extract_temp = tempdir()?;
-    let extract_path = extract_temp.path();
-
-    let partial_subdir = "test-group/test-star";
-    let result = extract_tar_subdir(&archive_path, partial_subdir, extract_path);
-
-    assert!(
-        result.is_err(),
-        "Function should return an error for subdirectory name that is only partially included"
-    );
-
-    if let Err(e) = result {
-        assert!(e.to_string().contains("not found in archive"));
-    }
+    // Return to original directory
+    std::env::set_current_dir(original_dir)?;
 
     Ok(())
 }
+
+// // This test would require a mock server for GitHub API
+// #[test]
+// fn test_use_remote_starter() -> Result<()> {
+//     use mockito::{mock, server_url};
+//
+//     // Set up mock server for GitHub API
+//     let _m = mock("GET", "/username/repo/archive/HEAD.tar.gz")
+//         .with_status(200)
+//         .with_body_from_file("tests/fixtures/test-repo.tar.gz")
+//         .create();
+//
+//     let temp_dir = tempdir()?;
+//     let dest_dir = temp_dir.path().join("dest");
+//
+//     // Create test config
+//     let config = Config {
+//         instances: vec![JumpStartInstance {
+//             name: "test-instance".to_string(),
+//             path: PathBuf::from("/not/used/for/remote"),
+//             default: Some(true),
+//         }],
+//     };
+//
+//     // Create a GitHub URL that points to our mock server
+//     let github_starter = format!("@username/repo:group/starter");
+//
+//     // Call the use function with a remote starter
+//     r#use::r#use(config, &github_starter, Some(dest_dir.to_str().unwrap()))?;
+//
+//     // Verify files were copied correctly (would depend on your test fixture)
+//     assert!(dest_dir.exists());
+//
+//     Ok(())
+// }

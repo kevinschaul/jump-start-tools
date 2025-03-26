@@ -60,25 +60,7 @@ fn download_tar(url: &String, dest: &Path) -> Result<PathBuf> {
 }
 
 /// Extracts a subdirectory from a tar.gz archive file to a destination path.
-///
-/// # Arguments
-///
-/// * `tar_path` - Path to the tar.gz archive
-/// * `subdir` - Subdirectory to extract
-/// * `dest` - Destination path
-///
-/// # Examples
-///
-/// ```no_run
-/// # use std::path::Path;
-/// # use jump_start::commands::extract_tar_subdir;
-/// let archive = Path::new("/tmp/repo.tar.gz");
-/// let subdir = "group/starter";
-/// let dest = Path::new("./project");
-///
-/// extract_tar_subdir(archive, subdir, dest).expect("Failed to extract");
-/// ```
-pub fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<()> {
+fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<()> {
     fs::create_dir_all(dest)?;
 
     let tar_file = File::open(tar_path)?;
@@ -254,4 +236,246 @@ fn clone_local_starter(
 
     copy_dir_contents(&starter_path_full, &final_dest)?;
     Ok(final_dest)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use flate2::Compression;
+    use flate2::write::GzEncoder;
+    use tar::Builder;
+    use tempfile::{TempDir, tempdir};
+
+    fn create_test_archive(
+        root_dir: &str,
+        _target_subdir: &str,
+        files: Vec<(String, &str)>,
+    ) -> Result<(TempDir, PathBuf)> {
+        let temp_dir = tempdir()?;
+        let archive_path = temp_dir.path().join("test_archive.tar.gz");
+
+        let tar_gz = File::create(&archive_path)?;
+        let enc = GzEncoder::new(tar_gz, Compression::default());
+        let mut builder = Builder::new(enc);
+
+        for (file_path, contents) in files {
+            let full_path = format!("{}/{}", root_dir, file_path);
+
+            let mut header = tar::Header::new_gnu();
+            header.set_size(contents.len() as u64);
+            header.set_mode(0o644);
+            header.set_cksum();
+            builder.append_data(&mut header, full_path, contents.as_bytes())?;
+        }
+
+        builder.finish()?;
+        Ok((temp_dir, archive_path))
+    }
+
+    #[test]
+    fn test_extract_tar_subdir() -> Result<()> {
+        let root_dir = "test-repo-root";
+        let subdir_path = "test-group/test-starter";
+
+        let files = vec![
+            (
+                format!("{}/file1.txt", subdir_path),
+                "This is file 1 content",
+            ),
+            (
+                format!("{}/file2.txt", subdir_path),
+                "This is file 2 content",
+            ),
+            (
+                format!("{}/nested/file3.txt", subdir_path),
+                "This is a nested file",
+            ),
+            (
+                "other-dir/file4.txt".to_string(),
+                "This file should not be extracted",
+            ),
+            (
+                "test-group/other-starter/file5.txt".to_string(),
+                "This file should not be extracted",
+            ),
+        ];
+
+        let (_archive_temp, archive_path) = create_test_archive(root_dir, subdir_path, files)?;
+        let extract_temp = tempdir()?;
+        let extract_path = extract_temp.path();
+
+        extract_tar_subdir(&archive_path, subdir_path, extract_path)?;
+
+        assert!(
+            extract_path.join("file1.txt").exists(),
+            "file1.txt should be extracted"
+        );
+        assert!(
+            extract_path.join("file2.txt").exists(),
+            "file2.txt should be extracted"
+        );
+        assert!(
+            extract_path.join("nested/file3.txt").exists(),
+            "nested/file3.txt should be extracted"
+        );
+
+        assert_eq!(
+            fs::read_to_string(extract_path.join("file1.txt"))?,
+            "This is file 1 content"
+        );
+        assert_eq!(
+            fs::read_to_string(extract_path.join("file2.txt"))?,
+            "This is file 2 content"
+        );
+        assert_eq!(
+            fs::read_to_string(extract_path.join("nested/file3.txt"))?,
+            "This is a nested file"
+        );
+
+        assert!(
+            !extract_path.join("other-dir/file4.txt").exists(),
+            "file4.txt should not be extracted"
+        );
+        assert!(
+            !extract_path
+                .join("test-group/other-starter/file5.txt")
+                .exists(),
+            "file5.txt should not be extracted"
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_extract_tar_subdir_nonexistent_subdir() -> Result<()> {
+        let root_dir = "test-repo-root";
+        let real_subdir = "test-group/test-starter";
+
+        let files = vec![(
+            format!("{}/file1.txt", real_subdir),
+            "This is file 1 content",
+        )];
+
+        let (_archive_temp, archive_path) = create_test_archive(root_dir, real_subdir, files)?;
+        let extract_temp = tempdir()?;
+        let extract_path = extract_temp.path();
+
+        let nonexistent_subdir = "nonexistent/directory";
+        let result = extract_tar_subdir(&archive_path, nonexistent_subdir, extract_path);
+
+        assert!(
+            result.is_err(),
+            "Function should return an error for nonexistent subdirectory"
+        );
+
+        if let Err(e) = result {
+            assert!(e.to_string().contains("not found in archive"));
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_extract_tar_subdir_partial() -> Result<()> {
+        let root_dir = "test-repo-root";
+        let real_subdir = "test-group/test-starter";
+
+        let files = vec![(
+            format!("{}/file1.txt", real_subdir),
+            "This is file 1 content",
+        )];
+
+        let (_archive_temp, archive_path) = create_test_archive(root_dir, real_subdir, files)?;
+        let extract_temp = tempdir()?;
+        let extract_path = extract_temp.path();
+
+        let partial_subdir = "test-group/test-star";
+        let result = extract_tar_subdir(&archive_path, partial_subdir, extract_path);
+
+        assert!(
+            result.is_err(),
+            "Function should return an error for subdirectory name that is only partially included"
+        );
+
+        if let Err(e) = result {
+            assert!(e.to_string().contains("not found in archive"));
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_copy_dir_contents() -> Result<()> {
+        let temp_dir = tempdir()?;
+        let src_dir = temp_dir.path().join("src");
+        let dest_dir = temp_dir.path().join("dest");
+
+        // Create source directory with some files
+        fs::create_dir_all(src_dir.join("nested"))?;
+        fs::write(src_dir.join("file1.txt"), "test content 1")?;
+        fs::write(src_dir.join("nested/file2.txt"), "test content 2")?;
+
+        copy_dir_contents(&src_dir, &dest_dir)?;
+
+        // Verify files were copied correctly
+        assert!(dest_dir.join("file1.txt").exists());
+        assert!(dest_dir.join("nested/file2.txt").exists());
+
+        // Check file contents
+        let file1_content = fs::read_to_string(dest_dir.join("file1.txt"))?;
+        assert_eq!(file1_content, "test content 1");
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_final_dest_explicit() -> Result<()> {
+        let temp_dir = tempdir()?;
+        let starter_path = temp_dir.path().join("starter");
+        fs::create_dir_all(&starter_path)?;
+
+        // Create a starter config
+        let config_content = "name: test-starter\ndefaultDir: ./default-project";
+        fs::write(starter_path.join("jump-start.yaml"), config_content)?;
+
+        let explicit_dest = "explicit-dest";
+        let final_dest = get_final_dest(&starter_path, Some(explicit_dest))?;
+
+        assert_eq!(final_dest, PathBuf::from(explicit_dest));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_final_dest_from_config() -> Result<()> {
+        let temp_dir = tempdir()?;
+        let starter_path = temp_dir.path().join("starter");
+        fs::create_dir_all(&starter_path)?;
+
+        // Create a starter config
+        let config_content = "name: test-starter\ndefaultDir: ./default-project";
+        fs::write(starter_path.join("jump-start.yaml"), config_content)?;
+
+        let final_dest = get_final_dest(&starter_path, None)?;
+
+        assert_eq!(final_dest, PathBuf::from("./default-project"));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_final_dest_empty_default() -> Result<()> {
+        let temp_dir = tempdir()?;
+        let starter_path = temp_dir.path().join("starter");
+        fs::create_dir_all(&starter_path)?;
+
+        // Create a starter config with empty defaultDir
+        let config_content = "name: test-starter\ndefaultDir: \"\"";
+        fs::write(starter_path.join("jump-start.yaml"), config_content)?;
+
+        let final_dest = get_final_dest(&starter_path, None)?;
+
+        assert_eq!(final_dest, PathBuf::from("."));
+
+        Ok(())
+    }
 }
