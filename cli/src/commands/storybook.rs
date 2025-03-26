@@ -1,6 +1,6 @@
-use crate::Config;
 use crate::config::get_default_instance;
 use crate::starter::{LocalStarter, get_starter_command, get_starter_files, parse_starters};
+use crate::{Config, JumpStartError};
 use anyhow::{Context, Result};
 use handlebars::Handlebars;
 use serde_json::json;
@@ -16,21 +16,15 @@ const PREVIEW_TS: &str = include_str!("../templates/storybook/preview.ts");
 const STARTER_PREVIEW_TSX: &str = include_str!("../templates/storybook/StarterPreview.tsx");
 const TYPES_TSX: &str = include_str!("../templates/storybook/types.tsx");
 
-pub fn dev(config: Config, port: u16) {
+pub fn dev(config: Config, port: u16) -> Result<(), crate::JumpStartError> {
     let instance = get_default_instance(&config);
     println!("Using instance {} ({:?})", instance.name, instance.path);
 
     // Generate storybook config
-    if let Err(e) = generate_config(&instance.path) {
-        eprintln!("Error generating Storybook config: {}", e);
-        return;
-    }
+    generate_config(&instance.path)?;
 
     // Generate storybook files initially
-    if let Err(e) = generate_stories(&instance.path) {
-        eprintln!("Error generating Storybook files: {}", e);
-        return;
-    }
+    generate_stories(&instance.path)?;
 
     // Start the storybook server
     println!("Starting Storybook development server on port {}...", port);
@@ -65,20 +59,23 @@ pub fn dev(config: Config, port: u16) {
     println!("Press Ctrl+C to stop the server");
 
     // Wait for the storybook thread to finish
-    if let Err(e) = storybook_thread.join() {
-        eprintln!("Error joining storybook thread: {:?}", e);
-    }
+    storybook_thread.join().map_err(|e| {
+        // Convert the thread panic error to your error type
+        Box::new(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Storybook thread panicked: {:?}", e),
+        ))
+    })?;
+
+    Ok(())
 }
 
-pub fn prod(config: Config, output: String) {
+pub fn prod(config: Config, output: String) -> Result<(), crate::JumpStartError> {
     let instance = get_default_instance(&config);
     println!("Using instance {} ({:?})", instance.name, instance.path);
 
     // Generate storybook files
-    if let Err(e) = generate_stories(&instance.path) {
-        eprintln!("Error generating Storybook files: {}", e);
-        return;
-    }
+    generate_stories(&instance.path)?;
 
     // Build storybook for production
     println!("Building Storybook for production to {}", output);
@@ -92,17 +89,21 @@ pub fn prod(config: Config, output: String) {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
 
-    match cmd.status() {
-        Ok(status) => {
-            if status.success() {
-                println!("Storybook build completed successfully");
-            } else {
-                eprintln!("Storybook build failed with status: {}", status);
-            }
-        }
-        Err(e) => {
-            eprintln!("Failed to build Storybook: {}", e);
-        }
+    let status = cmd.status().map_err(|e| -> crate::JumpStartError {
+        Box::new(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Failed to execute storybook build: {}", e),
+        ))
+    })?;
+
+    if status.success() {
+        println!("Storybook build completed successfully");
+        Ok(())
+    } else {
+        Err(Box::new(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("Storybook build failed with status: {}", status),
+        )) as crate::JumpStartError)
     }
 }
 

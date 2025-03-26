@@ -75,7 +75,7 @@ fn rewrite_readme_section(existing_content: &str, section: &str, new_content: &s
     rewritten_lines.join("\n")
 }
 
-pub fn update_readme(config: Config) -> Result<(), Box<dyn std::error::Error>> {
+pub fn update_readme(config: Config) -> Result<(), crate::JumpStartError> {
     let instance = get_default_instance(&config);
     println!("Using instance {} ({:?})", instance.name, instance.path);
 

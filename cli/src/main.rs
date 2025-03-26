@@ -53,39 +53,39 @@ enum StorybookCommands {
 
 fn main() {
     let args = Cli::parse();
-
     let config_path = get_config_path();
-    let config = load_config(&config_path).expect("Error reading config file: {}");
+
+    let config = match load_config(&config_path) {
+        Ok(cfg) => cfg,
+        Err(err) => {
+            eprintln!("Error reading config file: {}", err);
+            std::process::exit(1);
+        }
+    };
 
     // Validate config
     if config.instances.is_empty() || config.instances[0].name == "" {
-        panic!(
+        eprintln!(
             "Config file is missing instances. Add your instances to the file {:?}",
             config_path
         );
+        std::process::exit(1);
     }
 
-    match args.command {
-        Commands::Config {} => {
-            commands::config::config(config);
-        }
-        Commands::Use { starter_identifier } => {
-            commands::r#use::r#use(config, &starter_identifier);
-        }
-        Commands::Find { search_term } => {
-            commands::find::find(config, &search_term);
-        }
+    let result = match args.command {
+        Commands::Config {} => commands::config::config(config),
+        Commands::Use { starter_identifier } => commands::r#use::r#use(config, &starter_identifier),
+        Commands::Find { search_term } => commands::find::find(config, &search_term),
         Commands::Storybook(storybook_command) => match storybook_command {
-            StorybookCommands::Dev { port } => {
-                commands::storybook::dev(config, port);
-            }
-            StorybookCommands::Prod { output } => {
-                commands::storybook::prod(config, output);
-            }
+            StorybookCommands::Dev { port } => commands::storybook::dev(config, port),
+            StorybookCommands::Prod { output } => commands::storybook::prod(config, output),
         },
-        Commands::UpdateReadme {} => {
-            // TODO why does this require a return but the other commands do not?
-            let _ = commands::update_readme::update_readme(config);
-        }
+        Commands::UpdateReadme {} => commands::update_readme::update_readme(config),
+    };
+
+    // Handle any errors from commands
+    if let Err(err) = result {
+        eprintln!("Error: {}", err);
+        std::process::exit(1);
     }
 }

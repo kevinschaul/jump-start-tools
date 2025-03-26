@@ -6,7 +6,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use tar::Archive;
 
-pub fn r#use(config: Config, starter_identifier: &String) {
+pub fn r#use(config: Config, starter_identifier: &String) -> Result<(), crate::JumpStartError> {
     let _instance = get_default_instance(&config);
 
     if starter_identifier.starts_with("@") {
@@ -15,15 +15,16 @@ pub fn r#use(config: Config, starter_identifier: &String) {
         let dest = ".";
         let mode = "tar";
 
-        // TODO
-        let _ = clone_remote_starter(starter, dest, mode);
+        clone_remote_starter(starter, dest, mode)?;
     } else {
         let starter = LocalStarter::from_path(starter_identifier);
         println!("Found local starter {:?}", starter);
     }
+
+    Ok(())
 }
 
-fn download_tar(url: &String, dest: &Path) -> Result<PathBuf, Box<dyn std::error::Error>> {
+fn download_tar(url: &String, dest: &Path) -> Result<PathBuf, crate::JumpStartError> {
     fs::create_dir_all(dest)?;
 
     let file_path = dest.join("HEAD.tar.gz");
@@ -54,12 +55,13 @@ fn extract_tar_subdir(
     tar_path: &Path,
     subdir: &str,
     dest: &Path,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), crate::JumpStartError> {
     fs::create_dir_all(dest)?;
 
     let tar_file = File::open(tar_path)?;
     let tar = GzDecoder::new(tar_file);
     let mut archive = Archive::new(tar);
+    let mut subdir_found = false;
 
     for entry in archive.entries()? {
         let mut entry = entry?;
@@ -67,7 +69,7 @@ fn extract_tar_subdir(
         let path_str = path.to_string_lossy();
 
         let parts: Vec<&str> = path_str.split('/').collect();
-        println!("parts: {:?}", parts);
+        // println!("parts: {:?}", parts);
 
         if parts.len() <= 1 {
             // Skip the root directory itself
@@ -78,7 +80,7 @@ fn extract_tar_subdir(
         // This handles names like "jump-start-b3c8d936025b11b9a57cfac99e0decb9f908042e/"
         let rel_path_str = parts[1..].join("/");
         let rel_path = PathBuf::from(&rel_path_str);
-        println!("rel_path: {:?}", rel_path);
+        // println!("rel_path: {:?}", rel_path);
 
         if rel_path.as_os_str().is_empty() {
             continue;
@@ -108,13 +110,19 @@ fn extract_tar_subdir(
         }
 
         entry.unpack(&dest_path)?;
+
+        subdir_found = true;
     }
 
-    Ok(())
+    if subdir_found {
+        Ok(())
+    } else {
+        Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Subdirectory not found").into())
+    }
 }
 
 // Helper function to recursively copy directory contents
-fn copy_dir_contents(src: &Path, dst: &Path) -> Result<(), Box<dyn std::error::Error>> {
+fn copy_dir_contents(src: &Path, dst: &Path) -> Result<(), crate::JumpStartError> {
     for entry in fs::read_dir(src)? {
         let entry = entry?;
         let file_type = entry.file_type()?;
@@ -136,7 +144,7 @@ fn clone_remote_starter(
     starter: RemoteStarter,
     dest: &str,
     mode: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), crate::JumpStartError> {
     let dest_path = Path::new(dest);
 
     if mode == "tar" {
@@ -154,6 +162,7 @@ fn clone_remote_starter(
         let tar_path = download_tar(&tar_url, &cache_dir)?;
         let subdir = format!("{}/{}", starter.group, starter.name);
         extract_tar_subdir(&tar_path, &subdir, dest_path)?;
+
         println!(
             "Extracted {:?} with subdir {:?} to {:?}",
             tar_path, subdir, dest_path
