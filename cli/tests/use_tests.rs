@@ -87,38 +87,3 @@ fn test_use_local_starter_default_path() -> Result<()> {
 
     Ok(())
 }
-
-// // This test would require a mock server for GitHub API
-// #[test]
-// fn test_use_remote_starter() -> Result<()> {
-//     use mockito::{mock, server_url};
-//
-//     // Set up mock server for GitHub API
-//     let _m = mock("GET", "/username/repo/archive/HEAD.tar.gz")
-//         .with_status(200)
-//         .with_body_from_file("tests/fixtures/test-repo.tar.gz")
-//         .create();
-//
-//     let temp_dir = tempdir()?;
-//     let dest_dir = temp_dir.path().join("dest");
-//
-//     // Create test config
-//     let config = Config {
-//         instances: vec![JumpStartInstance {
-//             name: "test-instance".to_string(),
-//             path: PathBuf::from("/not/used/for/remote"),
-//             default: Some(true),
-//         }],
-//     };
-//
-//     // Create a GitHub URL that points to our mock server
-//     let github_starter = format!("@username/repo:group/starter");
-//
-//     // Call the use function with a remote starter
-//     r#use::r#use(config, &github_starter, Some(dest_dir.to_str().unwrap()))?;
-//
-//     // Verify files were copied correctly (would depend on your test fixture)
-//     assert!(dest_dir.exists());
-//
-//     Ok(())
-// }

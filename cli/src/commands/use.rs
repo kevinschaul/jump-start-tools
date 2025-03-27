@@ -1,7 +1,7 @@
 use crate::JumpStartInstance;
 use crate::starter::StarterConfig;
 use crate::{Config, LocalStarter, RemoteStarter, config::get_default_instance};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use directories::ProjectDirs;
 use flate2::read::GzDecoder;
 use log::{debug, info, warn};
@@ -19,13 +19,15 @@ pub fn r#use(config: Config, starter_identifier: &str, dest: Option<&str>) -> Re
         debug!("Remote starter {:?}", starter);
         let mode = "tar";
 
-        let ultimate_dest = clone_remote_starter(starter, dest, mode)?;
+        let ultimate_dest = clone_remote_starter(starter, dest, mode)
+            .with_context(|| format!("Cloning remote starter"))?;
         info!("{} copied to {:?}", starter_identifier, ultimate_dest)
     } else {
         let starter = LocalStarter::from_path(starter_identifier).unwrap();
         debug!("Local starter {:?}", starter);
 
-        let ultimate_dest = clone_local_starter(instance, starter, dest)?;
+        let ultimate_dest = clone_local_starter(instance, starter, dest)
+            .with_context(|| format!("Cloning local starter"))?;
         info!("{} copied to {:?}", starter_identifier, ultimate_dest)
     }
 
@@ -180,11 +182,13 @@ fn clone_remote_starter(starter: RemoteStarter, dest: Option<&str>, mode: &str) 
             "https://www.github.com/{}/{}/archive/HEAD.tar.gz",
             starter.github_username, starter.github_repo
         );
-        let tar_path = download_tar(&tar_url, &cache_dir)?;
+        let tar_path = download_tar(&tar_url, &cache_dir)
+            .with_context(|| format!("Downloading tar {}", tar_url))?;
         let subdir = format!("{}/{}", starter.group, starter.name);
         let cache_dest = cache_dir.join(&subdir);
 
-        extract_tar_subdir(&tar_path, &subdir, &cache_dest)?;
+        extract_tar_subdir(&tar_path, &subdir, &cache_dest)
+            .with_context(|| format!("Extracting tar {} into {:?}", tar_url, cache_dest))?;
         debug!(
             "Extracted {:?} with subdir {:?} to {:?}",
             tar_path, subdir, cache_dest
@@ -192,7 +196,8 @@ fn clone_remote_starter(starter: RemoteStarter, dest: Option<&str>, mode: &str) 
 
         let final_dest = get_final_dest(&cache_dest, dest)?;
 
-        copy_dir_contents(&cache_dest, &final_dest)?;
+        copy_dir_contents(&cache_dest, &final_dest)
+            .with_context(|| format!("Copying dir contents"))?;
         Ok(final_dest)
     } else {
         anyhow::bail!("Not implemented")
