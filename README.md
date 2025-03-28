@@ -128,3 +128,7 @@ jump-start repo (or [mine, for example](https://github.com/kevinschaul/jump-star
 
 Alternatively, if this repo is next to your jump-start
 repo, you can just run `npm run dev` from this repo.
+
+```
+cargo install --path cli
+```

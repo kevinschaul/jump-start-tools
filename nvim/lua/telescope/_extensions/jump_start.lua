@@ -28,15 +28,26 @@ local function generate_display(entry_parts)
 end
 
 local function make_entry_from_jump_start(output)
-	-- `jump-start find` prints each result in a tab-delimited format
-	local parts_raw = vim.split(output, "\t")
+	-- Parse JSON output from jump-start find
+	debug_print(output)
+	local ok, parsed = pcall(vim.json.decode, output)
+
+	if not ok then
+		-- If JSON parsing fails, log error and return empty entry
+		debug_print("Failed to parse JSON output: " .. output)
+		return nil
+	end
+
+	local starter_path = parsed.instance.path .. parsed.starter.group .. "/" .. parsed.starter.name
+
+	-- Create parts table from parsed JSON
 	local parts = {
-		starter_path = parts_raw[1],
-		yaml_path = parts_raw[1] .. "/jump-start.yaml",
-		instance = parts_raw[2],
-		group = parts_raw[3],
-		name = parts_raw[4],
-		main_file = parts_raw[5],
+		starter_path = starter_path,
+		yaml_path = starter_path .. "/jump-start.yaml",
+		instance = parsed.instance.name,
+		group = parsed.starter.group,
+		name = parsed.starter.name,
+		main_file = parsed.starter.main_file,
 	}
 
 	local display = generate_display(parts)
@@ -81,7 +92,7 @@ local function open_in_new_buffer(prompt_bufnr)
 	end
 end
 
--- A Telescope picker for looking at a starter’s files
+-- A Telescope picker for looking at a starter's files
 -- This picker is opened by the find picker.
 --
 -- @argument opts - Telescope opts
@@ -90,7 +101,7 @@ local function inspect_starter(opts, starter_entry)
 	pickers
 			.new(opts, {
 				prompt_title =
-				"Browse the starter’s files (Press <CR> to use; <C-t> to open in new buffer; <C-p> to paste into current buffer)",
+				"Browse the starter's files (Press <CR> to use; <C-t> to open in new buffer; <C-p> to paste into current buffer)",
 				finder = finders.new_job(function(prompt)
 					return { "fd", prompt, "--base-directory", starter_entry.value.starter_path }
 				end, function(fd_output)
@@ -123,10 +134,8 @@ local function find(opts)
 				finder = finders.new_job(function(prompt)
 					-- Only send the search if there's a prompt
 					if prompt ~= "" then
-						return { "jump-start", "find", prompt }
+						return { "jump-start", "find", "--json", prompt }
 					end
-					-- Return empty results for empty prompt
-					return { "echo", "" }
 				end, make_entry_from_jump_start),
 				previewer = conf.file_previewer(opts),
 				attach_mappings = function(prompt_bufnr, map)
