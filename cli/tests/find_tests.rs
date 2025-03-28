@@ -34,7 +34,7 @@ fn test_search_instance_filename_group() -> Result<()> {
 
     let matches = search_instance(instance_dir, &pattern)?;
     assert_eq!(matches.len(), 1);
-    assert!(matches.contains_key("group/test-starter"));
+    assert_eq!(matches[0].path, "group/test-starter");
 
     Ok(())
 }
@@ -48,7 +48,7 @@ fn test_search_instance_filename_name() -> Result<()> {
 
     let matches = search_instance(instance_dir, &pattern)?;
     assert_eq!(matches.len(), 1);
-    assert!(matches.contains_key("group/test-starter"));
+    assert_eq!(matches[0].path, "group/test-starter");
 
     Ok(())
 }
@@ -75,7 +75,7 @@ fn test_search_instance_filename_group_name() -> Result<()> {
 
     let matches = search_instance(instance_dir, &pattern)?;
     assert_eq!(matches.len(), 1);
-    assert!(matches.contains_key("group/test-starter"));
+    assert_eq!(matches[0].path, "group/test-starter");
 
     Ok(())
 }
@@ -89,7 +89,7 @@ fn test_search_instance_contents_yaml() -> Result<()> {
 
     let matches = search_instance(instance_dir, &pattern)?;
     assert_eq!(matches.len(), 1);
-    assert!(matches.contains_key("group/test-starter"));
+    assert_eq!(matches[0].path, "group/test-starter");
 
     Ok(())
 }
@@ -109,7 +109,7 @@ fn test_search_instance_with_symlink() -> Result<()> {
 
     let matches = search_instance(instance_dir, &pattern)?;
     assert_eq!(matches.len(), 1);
-    assert!(matches.contains_key("group/test-starter"));
+    assert_eq!(matches[0].path, "group/test-starter");
 
     Ok(())
 }

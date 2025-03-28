@@ -1,25 +1,123 @@
+use crate::JumpStartInstance;
 use crate::{Config, LocalStarter, starter::parse_starters};
 use anyhow::{Context, Result};
 use log::debug;
 use regex::Regex;
+use serde_json::json;
 use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::path::PathBuf;
 
-pub fn find(config: Config, search_term: &str) -> Result<()> {
+pub fn find(config: Config, search_term: &str, json: bool) -> Result<()> {
     debug!("Finding {search_term}");
 
     let pattern = make_pattern(&search_term)?;
 
     for instance in config.instances {
         debug!("Searching instance {:?}", instance.name);
-        let matches = search_instance(instance.path, &pattern)?;
+        let matches = search_instance(instance.path.clone(), &pattern)?;
         for starter in matches {
-            println!("{:?}", starter.0);
+            println!("{}", format_result(&instance, &starter, json)?);
         }
     }
 
     Ok(())
+}
+
+/// Formats a result as either a JSON string or a human-readable string based on the `json` parameter.
+///
+/// # Examples
+///
+/// ## JSON output format
+///
+/// ```
+/// use jump_start::JumpStartInstance;
+/// use jump_start::starter::{LocalStarter, StarterConfig};
+/// use jump_start::commands::find::format_result;
+/// use std::path::PathBuf;
+///
+/// // Create test instances
+/// let instance = JumpStartInstance {
+///     path: PathBuf::from("/home/user/projects/my-app"),
+///     name: "my-app".to_string(),
+///     default: None,
+/// };
+///
+/// let starter = LocalStarter {
+///     path: "react/component".to_string(),
+///     group: "react".to_string(),
+///     name: "component".to_string(),
+///     config: Some(StarterConfig {
+///         main_file: Some("index.js".to_string()),
+///         description: Some("A React component".to_string()),
+///         default_dir: None,
+///         preview: None,
+///     }),
+/// };
+///
+/// let result = format_result(&instance, &starter, true).unwrap();
+///
+/// // Verify the JSON structure contains expected fields
+/// let json: serde_json::Value = serde_json::from_str(&result).unwrap();
+/// assert_eq!(json["instance"]["path"], "/home/user/projects/my-app");
+/// assert_eq!(json["instance"]["name"], "my-app");
+/// assert_eq!(json["starter"]["group"], "react");
+/// assert_eq!(json["starter"]["name"], "component");
+/// assert_eq!(json["starter"]["main_file"], "index.js");
+/// ```
+///
+/// ## Human-readable output format
+///
+/// ```
+/// use jump_start::JumpStartInstance;
+/// use jump_start::starter::{LocalStarter, StarterConfig};
+/// use jump_start::commands::find::format_result;
+/// use std::path::PathBuf;
+///
+/// // Create test instances
+/// let instance = JumpStartInstance {
+///     path: PathBuf::from("/home/user/projects/my-app"),
+///     name: "my-app".to_string(),
+///     default: None,
+/// };
+///
+/// let starter = LocalStarter {
+///     path: "react/component".to_string(),
+///     group: "react".to_string(),
+///     name: "component".to_string(),
+///     config: None,
+/// };
+///
+/// let result = format_result(&instance, &starter, false).unwrap();
+///
+/// // Verify the string format is as expected
+/// assert_eq!(result, "/home/user/projects/my-appreact/component");
+/// ```
+pub fn format_result(
+    instance: &JumpStartInstance,
+    starter: &LocalStarter,
+    json: bool,
+) -> Result<String> {
+    if json {
+        let result_json = json!({
+            "instance": {
+                "path": instance.path,
+                "name": instance.name,
+            },
+            "starter": {
+                "group": starter.group,
+                "name": starter.name,
+                "main_file": starter.config.as_ref().and_then(|c| c.main_file.as_ref()),
+            }
+        });
+        Ok(serde_json::to_string(&result_json)?)
+    } else {
+        Ok(format!(
+            "{}{}",
+            instance.path.to_string_lossy(),
+            starter.path
+        ))
+    }
 }
 
 pub fn make_pattern(search_term: &str) -> Result<Regex> {
@@ -27,7 +125,7 @@ pub fn make_pattern(search_term: &str) -> Result<Regex> {
     Ok(pattern)
 }
 
-pub fn search_instance(path: PathBuf, pattern: &Regex) -> Result<HashMap<String, LocalStarter>> {
+pub fn search_instance(path: PathBuf, pattern: &Regex) -> Result<Vec<LocalStarter>> {
     let mut matches = HashMap::new();
 
     let starter_groups = parse_starters(&path)?;
@@ -53,7 +151,7 @@ pub fn search_instance(path: PathBuf, pattern: &Regex) -> Result<HashMap<String,
         }
     }
 
-    Ok(matches)
+    Ok(matches.into_values().collect())
 }
 
 fn search_starter_files(

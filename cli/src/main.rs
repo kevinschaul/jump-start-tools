@@ -31,7 +31,12 @@ enum Commands {
 
     /// Find a starter
     #[command(arg_required_else_help = true)]
-    Find { search_term: String },
+    Find {
+        search_term: String,
+        /// Output results as JSON
+        #[arg(long)]
+        json: bool,
+    },
 
     /// Storybook commands
     #[command(subcommand)]
@@ -118,7 +123,7 @@ fn main() {
             starter_identifier,
             dest,
         } => commands::r#use::r#use(config, &starter_identifier, dest.as_deref()),
-        Commands::Find { search_term } => commands::find::find(config, &search_term),
+        Commands::Find { search_term, json } => commands::find::find(config, &search_term, json),
         Commands::Storybook(storybook_command) => match storybook_command {
             StorybookCommands::Dev { port } => commands::storybook::dev(config, port),
             StorybookCommands::Prod { output } => commands::storybook::prod(config, output),
