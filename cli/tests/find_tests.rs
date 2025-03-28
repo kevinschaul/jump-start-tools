@@ -93,3 +93,23 @@ fn test_search_instance_contents_yaml() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+#[cfg(unix)]
+fn test_search_instance_with_symlink() -> Result<()> {
+    let temp_dir = fixture1()?;
+    let instance_dir = temp_dir.path().join("instance");
+    fs::create_dir_all(instance_dir.join("group/test-starter/data"))?;
+    std::os::unix::fs::symlink(
+        instance_dir.join("group/test-starter/data"),
+        instance_dir.join("group/test-starter/symlink"),
+    )?;
+    let search_term = "A starter for testing";
+    let pattern = make_pattern(search_term)?;
+
+    let matches = search_instance(instance_dir, &pattern)?;
+    assert_eq!(matches.len(), 1);
+    assert!(matches.contains_key("group/test-starter"));
+
+    Ok(())
+}

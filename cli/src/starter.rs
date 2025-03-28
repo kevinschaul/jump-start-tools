@@ -1,5 +1,6 @@
 use crate::LocalStarterGroupLookup;
 use glob::glob;
+use log::debug;
 use log::error;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
@@ -167,8 +168,8 @@ pub fn parse_starters(path: &Path) -> io::Result<LocalStarterGroupLookup> {
 
                 // Read and parse the YAML file
                 let file_content = fs::read_to_string(&path)?;
-                println!("Parsing YAML file: {}", path.display());
-                println!("Content: {}", file_content);
+                debug!("Parsing YAML file: {}", path.display());
+                debug!("Content: {}", file_content);
 
                 let starter_config = match file_content.parse::<StarterConfig>() {
                     Ok(config) => config,
@@ -201,7 +202,7 @@ pub fn parse_starters(path: &Path) -> io::Result<LocalStarterGroupLookup> {
 
                 groups.entry(group).or_default().push(starter);
             }
-            Err(e) => eprintln!("Error processing glob entry: {}", e),
+            Err(e) => error!("Error processing glob entry: {}", e),
         }
     }
 
@@ -227,14 +228,15 @@ pub fn get_starter_files(
             &excluded_files,
             &starter_dir.to_string_lossy(),
         )?;
-        println!(
+        debug!(
             "Found {} files for starter {}/{}",
             out.len(),
             starter.group,
             starter.name
         );
     } else {
-        eprintln!("Warning: Starter directory not found: {:?}", starter_dir);
+        error!("Warning: Starter directory not found: {:?}", starter_dir);
+        // TODO why would I do this?
         // Add a sample file if no files are found, so that the UI works
         out.push(LocalStarterFile {
             path: "example.file".to_string(),
@@ -279,7 +281,7 @@ fn visit_dirs(
                             });
                         }
                         Err(e) => {
-                            eprintln!("Warning: Could not read file {:?}: {}", path, e);
+                            error!("Warning: Could not read file {:?}: {}", path, e);
                             // Try to handle binary files by reading as bytes
                             // but for now just skip them
                         }
