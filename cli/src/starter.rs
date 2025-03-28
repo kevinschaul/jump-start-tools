@@ -10,13 +10,13 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PreviewConfig {
     pub template: Option<String>,
     pub dependencies: Option<HashMap<String, String>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct StarterConfig {
     pub description: Option<String>,
     #[serde(rename = "defaultDir")]
@@ -34,7 +34,7 @@ impl FromStr for StarterConfig {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LocalStarterFile {
     pub path: String,
     pub contents: String,
@@ -43,7 +43,7 @@ pub struct LocalStarterFile {
 /// A string idenfitying a starter. Takes the form "[INSTANCE]/GROUP/NAME", where INSTANCE, if
 /// unspecified, defaults to the default instance.
 // pub type StarterIdentifier = String;
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RemoteStarter {
     pub github_username: String,
     pub github_repo: String,
@@ -114,7 +114,7 @@ impl RemoteStarter {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LocalStarter {
     /// Full path identifier (group/name)
     pub path: String,
