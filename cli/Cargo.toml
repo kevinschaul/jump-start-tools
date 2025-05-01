@@ -1,11 +1,12 @@
 [package]
 name = "jump-start"
 description = "The CLI for jump-start: A shortcut to your favorite code"
-version.workspace = true
-edition.workspace = true
-authors.workspace = true
-license.workspace = true
-repository.workspace = true
+readme = "../README.md"
+version = "0.1.1-alpha-1"
+edition = "2024"
+authors = ["Kevin Schaul <kevin.schaul@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/kevinschaul/jump-start-tools"
 
 [dependencies]
 anyhow = "1.0.97"
