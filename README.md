@@ -12,25 +12,31 @@ instead!
 
 ## Installation
 
-1. Install from npm
+Ensure you have Rust and Cargo installed.
 
-TODO publish to npm
-
-```
-npm install --save --global jump-start-tools
-```
-
-2. Set up config with `jump-start config`:
-
-`jump-start config` prints out the path to the jump-start config file. Edit this to add your jump-start instances, e.g.
-
-**instances** Array of jump-start instances installed on your computer
-
-**instances[].path** Path to the jump-start instance
-
-**instances[].name** Optional. Name of jump-start instance, to distinguish when multiple are installed
+Install the `jump-start` CLI:
 
 ```
+cargo install --path cli
+```
+
+Alternatively, once published to crates.io:
+
+```
+cargo install jump-start
+```
+
+## Configuration
+
+Set up your jump-start instances:
+
+```
+jump-start config
+```
+
+Running this prints the path to your `config.json`. Edit it to add instances, for example:
+
+```json
 {
   "instances": [
     {
@@ -43,69 +49,82 @@ npm install --save --global jump-start-tools
 
 ## Usage
 
+### `jump-start config`
+
+Print the path to your jump-start config file:
+
+```
+jump-start config
+```
+
 ### `jump-start find`
 
-Usage: jump-start find [options] <search-term>
+Search installed starters by name or content:
 
-Search your installed starters. Searches both filenames and file content.
+```
+jump-start find [--json] <search-term>
+```
 
 Options:
-  -h, --help  display help for command
+  --json         Output results as JSON
+  -h, --help     Display help
 
 ### `jump-start use`
 
-Usage: jump-start use [options] <starter-string>
+Copy a starter to your project:
 
-Use a starter.
-
-Arguments:
-  starter-string  Specify the starter with `<group>/<starter>` or
-                  `<instance>/<group>/<starter>`.
-
-Options:
-  --out <dir>     Where to save the starter. Defaults to the starter's
-                  defaultDir.
-  -h, --help      display help for command
-
-### `jump-start add`
-
-Usage: jump-start add [options] <starter-string> <files>
-
-Add a starter.
+```
+jump-start use [--out <dir>] <starter-identifier>
+```
 
 Arguments:
-  starter-string  Specify the starter with `<group>/<starter>` or
-                  `<instance>/<group>/<starter>`.
-  files           A JSON string containing an array of files to add, with keys
-                  `name` and `contents`.
+  <starter-identifier>  Specify with `<group>/<starter>` or `<instance>/<group>/<starter>`
 
 Options:
-  -h, --help      display help for command
+  --out <dir>     Output directory (defaults to starter’s default)
+  -h, --help      Display help
 
-### `jump-start storybook`
+### `jump-start storybook dev`
 
-TODO use config
-TODO rename this to preview?
+Start the Storybook development server for your jump-start instance:
 
-### `jump-start build-storybook`
+```
+jump-start storybook dev [--port <port>]
+```
 
-TODO use config
+Options:
+  -p, --port <port>  Port to run Storybook on (default: 6006)
+
+### `jump-start storybook prod`
+
+Build Storybook for production:
+
+```
+jump-start storybook prod [--output <dir>]
+```
+
+Options:
+  -o, --output <dir>  Output directory (default: storybook-static)
 
 ### `jump-start update-readme`
 
-TODO use config
+Regenerate the `README.md` in your jump-start instance:
+
+```
+jump-start update-readme
+```
 
 ## Neovim plugin
 
-[./jump-start.nvim](./jump_start.nvim) includes a Telescope picker to easily search and use starters.
+[./nvim](./nvim) provides a Telescope extension to search and use jump-start starters.
 
 To install with [lazy.nvim](https://lazy.folke.io/):
 
-```
-{ dir = "~/dev/jump-start-tools/jump_start.nvim" },
+```lua
+{ dir = "~/dev/jump-start-tools/nvim" },
 ```
 
-You will have a new Telescope pickers now. Run manually with:
+You will have a new Telescope picker. Run it with:
 
 ```
 :Telescope jump_start find
@@ -122,12 +141,16 @@ But you problably want to set up your own mappings. Here is mine:
 
 ## Development
 
-To view the website locally, navigate to your
-jump-start repo (or [mine, for example](https://github.com/kevinschaul/jump-start)), run
-`npm install` and then `npm run dev`.
+### CLI
 
-Alternatively, if this repo is next to your jump-start
-repo, you can just run `npm run dev` from this repo.
+Build and test the Rust CLI:
+
+```
+cargo build
+cargo test
+```
+
+Install locally:
 
 ```
 cargo install --path cli
