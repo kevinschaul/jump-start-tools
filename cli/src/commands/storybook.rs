@@ -35,7 +35,7 @@ pub fn dev(config: Config, instance_path: Option<&str>, port: u16) -> Result<()>
     let storybook_thread = thread::spawn(move || {
         // The storybook command should be run in the instance directory, not the .storybook dir
         let mut cmd = Command::new("npx");
-        cmd.arg("storybook")
+        cmd.arg("storybook@8")
             .arg("dev")
             .arg("-p")
             .arg(port_str)
@@ -70,6 +70,9 @@ pub fn prod(config: Config, instance_path: Option<&str>, output: String) -> Resu
     let path = resolve_instance_path(&config, instance_path);
     println!("Using instance at {:?}", path);
 
+    // Generate storybook config
+    generate_config(&path)?;
+
     // Generate storybook files
     generate_stories(&path)?;
 
@@ -78,7 +81,7 @@ pub fn prod(config: Config, instance_path: Option<&str>, output: String) -> Resu
 
     let output_arg = format!("--output-dir={}", output);
     let mut cmd = Command::new("npx");
-    cmd.arg("storybook")
+    cmd.arg("storybook@8")
         .arg("build")
         .arg(output_arg)
         .current_dir(&path)
