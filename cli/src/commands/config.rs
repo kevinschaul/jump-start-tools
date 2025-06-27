@@ -1,8 +1,8 @@
-use crate::{Config, config::get_config_path};
+use crate::config::get_config_path;
 use anyhow::Result;
 use log::{debug, info};
 
-pub fn config(_config: Config) -> Result<()> {
+pub fn config() -> Result<()> {
     let config_path = get_config_path();
 
     // Add some debug messages that will only show with --verbose

@@ -1,3 +1,4 @@
+use anyhow::Result;
 use clap::{Parser, Subcommand};
 use jump_start::{
     commands,
@@ -74,10 +75,7 @@ enum StorybookCommands {
     },
 }
 
-fn main() {
-    let args = Cli::parse();
-
-    // Create a dead simple logger
+fn setup_logger(verbose: bool) {
     struct SimpleLogger;
 
     impl Log for SimpleLogger {
@@ -96,9 +94,8 @@ fn main() {
         fn flush(&self) {}
     }
 
-    // Set the global logger
     static LOGGER: SimpleLogger = SimpleLogger;
-    let max_level = if args.verbose {
+    let max_level = if verbose {
         LevelFilter::Debug
     } else {
         LevelFilter::Info
@@ -107,42 +104,74 @@ fn main() {
     // We don't need to check result as this only fails if a logger is already set
     let _ = set_logger(&LOGGER);
     set_max_level(max_level);
+}
+
+fn handle_command(command: Commands) -> Result<()> {
+    match command {
+        Commands::Config {} => commands::config::config(),
+        _ => {
+            let config = load_and_validate_config()?;
+            execute_config_dependent_command(command, config)
+        }
+    }
+}
+
+fn load_and_validate_config() -> Result<jump_start::config::Config> {
     let config_path = get_config_path();
     debug!("Using config path: {:?}", config_path);
 
-    let config = match load_config(&config_path) {
-        Ok(cfg) => cfg,
-        Err(err) => {
-            error!("Error reading config file: {}", err);
-            std::process::exit(1);
-        }
-    };
+    let config = load_config(&config_path).map_err(|err| {
+        error!("Error reading config file: {}", err);
+        err
+    })?;
 
-    // Validate config
     if config.instances.is_empty() || config.instances[0].name.is_empty() {
-        error!(
+        let msg = format!(
             "Config file is missing instances. Add your instances to the file {:?}",
             config_path
         );
-        std::process::exit(1);
+        error!("{}", msg);
+        return Err(anyhow::anyhow!(msg));
     }
 
-    let result = match args.command {
-        Commands::Config {} => commands::config::config(config),
+    Ok(config)
+}
+
+/// These commands require a valid config to exist
+fn execute_config_dependent_command(
+    command: Commands,
+    config: jump_start::config::Config,
+) -> Result<()> {
+    match command {
         Commands::Use {
             starter_identifier,
             dest,
         } => commands::r#use::r#use(config, &starter_identifier, dest.as_deref()),
         Commands::Find { search_term, json } => commands::find::find(config, &search_term, json),
         Commands::Storybook(storybook_command) => match storybook_command {
-            StorybookCommands::Dev { instance_path, port } => commands::storybook::dev(config, instance_path.as_deref(), port),
-            StorybookCommands::Prod { instance_path, output } => commands::storybook::prod(config, instance_path.as_deref(), output),
+            StorybookCommands::Dev {
+                instance_path,
+                port,
+            } => commands::storybook::dev(config, instance_path.as_deref(), port),
+            StorybookCommands::Prod {
+                instance_path,
+                output,
+            } => commands::storybook::prod(config, instance_path.as_deref(), output),
         },
-        Commands::UpdateReadme { instance_path } => commands::update_readme::update_readme(config, instance_path.as_deref()),
-    };
+        Commands::UpdateReadme { instance_path } => {
+            commands::update_readme::update_readme(config, instance_path.as_deref())
+        }
+        Commands::Config {} => {
+            unreachable!("Config command should be handled separately")
+        }
+    }
+}
 
-    // Handle any errors from commands
-    if let Err(err) = result {
+fn main() {
+    let args = Cli::parse();
+    setup_logger(args.verbose);
+
+    if let Err(err) = handle_command(args.command) {
         error!("Error: {}", err);
         std::process::exit(1);
     }
