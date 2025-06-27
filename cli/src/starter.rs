@@ -306,6 +306,6 @@ pub fn get_starter_command(
             github_username, github_repo, starter.group, starter.name, starter.name
         )
     } else {
-        format!("jump-start add {}/{}", starter.group, starter.name)
+        format!("jump-start use {}/{}", starter.group, starter.name)
     }
 }
