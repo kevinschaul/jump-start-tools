@@ -163,3 +163,10 @@ Install locally:
 ```
 cargo install --path cli
 ```
+
+Publish to crates.io:
+
+```
+cargo publish -p jump-start
+```
+
