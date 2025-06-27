@@ -89,30 +89,38 @@ Options:
 Start the Storybook development server for your jump-start instance:
 
 ```
-jump-start storybook dev [--port <port>]
+jump-start storybook dev [--instance-path <path>] [--port <port>]
 ```
 
 Options:
-  -p, --port <port>  Port to run Storybook on (default: 6006)
+  --instance-path <path>   Specify a custom instance path (overrides config)
+  -p, --port <port>        Port to run Storybook on (default: 6006)
+  -h, --help               Display help
 
 ### `jump-start storybook prod`
 
 Build Storybook for production:
 
 ```
-jump-start storybook prod [--output <dir>]
+jump-start storybook prod [--instance-path <path>] [--output <dir>]
 ```
 
 Options:
-  -o, --output <dir>  Output directory (default: storybook-static)
+  --instance-path <path>   Specify a custom instance path (overrides config)
+  -o, --output <dir>       Output directory (default: storybook-static)
+  -h, --help               Display help
 
 ### `jump-start update-readme`
 
 Regenerate the `README.md` in your jump-start instance:
 
 ```
-jump-start update-readme
+jump-start update-readme [--instance-path <path>]
 ```
+
+Options:
+  --instance-path <path>   Specify a custom instance path (overrides config)
+  -h, --help               Display help
 
 ## Neovim plugin
 

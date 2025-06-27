@@ -1,6 +1,6 @@
 use crate::Config;
 use crate::LocalStarterGroupLookup;
-use crate::config::get_default_instance;
+use crate::config::resolve_instance_path;
 use crate::starter::get_starter_command;
 use crate::starter::parse_starters;
 use anyhow::Result;
@@ -80,15 +80,14 @@ fn rewrite_readme_section(existing_content: &str, section: &str, new_content: &s
     rewritten_lines.join("\n")
 }
 
-pub fn update_readme(config: Config) -> Result<()> {
-    let instance = get_default_instance(&config);
-    println!("Using instance {} ({:?})", instance.name, instance.path);
+pub fn update_readme(config: Config, instance_path: Option<&str>) -> Result<()> {
+    let path = resolve_instance_path(&config, instance_path);
+    println!("Using instance at {:?}", path);
 
-    let readme_path = Path::new(&instance.path).join("README.md");
-
-    let groups = parse_starters(&instance.path)?;
+    let groups = parse_starters(&path)?;
     let starters_section = generate_readme_section(&groups);
 
+    let readme_path = Path::new(&path).join("README.md");
     let existing_readme = fs::read_to_string(&readme_path)
         .map_err(|e| anyhow::anyhow!("Failed to read README.md: {}", e))?;
 

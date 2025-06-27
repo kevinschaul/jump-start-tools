@@ -54,3 +54,14 @@ pub fn get_default_instance(config: &Config) -> &JumpStartInstance {
         .find(|i| i.default.unwrap_or(false))
         .unwrap_or(&config.instances[0])
 }
+
+/// Get the specified instance path, or the default instance path
+pub fn resolve_instance_path(config: &Config, instance_path: Option<&str>) -> std::path::PathBuf {
+    match instance_path {
+        Some(path) => std::path::PathBuf::from(path),
+        None => {
+            let instance = get_default_instance(config);
+            std::path::PathBuf::from(&instance.path)
+        }
+    }
+}

@@ -44,13 +44,20 @@ enum Commands {
 
     /// Update readme
     #[command()]
-    UpdateReadme {},
+    UpdateReadme {
+        /// Path to the instance to operate on
+        #[arg(long)]
+        instance_path: Option<String>,
+    },
 }
 
 #[derive(Subcommand)]
 enum StorybookCommands {
     /// Start Storybook development server
     Dev {
+        /// Path to the instance to operate on
+        #[arg(long)]
+        instance_path: Option<String>,
         /// Port to run Storybook on
         #[arg(short, long, default_value = "6006")]
         port: u16,
@@ -58,6 +65,9 @@ enum StorybookCommands {
 
     /// Build Storybook for production
     Prod {
+        /// Path to the instance to operate on
+        #[arg(long)]
+        instance_path: Option<String>,
         /// Output directory
         #[arg(short, long, default_value = "storybook-static")]
         output: String,
@@ -125,10 +135,10 @@ fn main() {
         } => commands::r#use::r#use(config, &starter_identifier, dest.as_deref()),
         Commands::Find { search_term, json } => commands::find::find(config, &search_term, json),
         Commands::Storybook(storybook_command) => match storybook_command {
-            StorybookCommands::Dev { port } => commands::storybook::dev(config, port),
-            StorybookCommands::Prod { output } => commands::storybook::prod(config, output),
+            StorybookCommands::Dev { instance_path, port } => commands::storybook::dev(config, instance_path.as_deref(), port),
+            StorybookCommands::Prod { instance_path, output } => commands::storybook::prod(config, instance_path.as_deref(), output),
         },
-        Commands::UpdateReadme {} => commands::update_readme::update_readme(config),
+        Commands::UpdateReadme { instance_path } => commands::update_readme::update_readme(config, instance_path.as_deref()),
     };
 
     // Handle any errors from commands

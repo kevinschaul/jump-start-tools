@@ -1,5 +1,5 @@
+use crate::config::resolve_instance_path;
 use crate::Config;
-use crate::config::get_default_instance;
 use crate::starter::{LocalStarter, get_starter_command, get_starter_files, parse_starters};
 use anyhow::{Context, Result};
 use handlebars::Handlebars;
@@ -16,21 +16,21 @@ const PREVIEW_TS: &str = include_str!("../templates/storybook/preview.ts");
 const STARTER_PREVIEW_TSX: &str = include_str!("../templates/storybook/StarterPreview.tsx");
 const TYPES_TSX: &str = include_str!("../templates/storybook/types.tsx");
 
-pub fn dev(config: Config, port: u16) -> Result<()> {
-    let instance = get_default_instance(&config);
-    println!("Using instance {} ({:?})", instance.name, instance.path);
+pub fn dev(config: Config, instance_path: Option<&str>, port: u16) -> Result<()> {
+    let path = resolve_instance_path(&config, instance_path);
+    println!("Using instance at {:?}", path);
 
     // Generate storybook config
-    generate_config(&instance.path)?;
+    generate_config(&path)?;
 
     // Generate storybook files initially
-    generate_stories(&instance.path)?;
+    generate_stories(&path)?;
 
     // Start the storybook server
     println!("Starting Storybook development server on port {}...", port);
 
     // Start storybook in a separate thread
-    let storybook_path = instance.path.clone();
+    let storybook_path = path.clone();
     let port_str = port.to_string();
     let storybook_thread = thread::spawn(move || {
         // The storybook command should be run in the instance directory, not the .storybook dir
@@ -66,12 +66,12 @@ pub fn dev(config: Config, port: u16) -> Result<()> {
     Ok(())
 }
 
-pub fn prod(config: Config, output: String) -> Result<()> {
-    let instance = get_default_instance(&config);
-    println!("Using instance {} ({:?})", instance.name, instance.path);
+pub fn prod(config: Config, instance_path: Option<&str>, output: String) -> Result<()> {
+    let path = resolve_instance_path(&config, instance_path);
+    println!("Using instance at {:?}", path);
 
     // Generate storybook files
-    generate_stories(&instance.path)?;
+    generate_stories(&path)?;
 
     // Build storybook for production
     println!("Building Storybook for production to {}", output);
@@ -81,7 +81,7 @@ pub fn prod(config: Config, output: String) -> Result<()> {
     cmd.arg("storybook")
         .arg("build")
         .arg(output_arg)
-        .current_dir(&instance.path)
+        .current_dir(&path)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
 
