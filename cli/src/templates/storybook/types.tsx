@@ -1,6 +1,6 @@
 export type StarterPreviewConfig = {
   template?: string;
-  dependencies?: { [name: string]: [version: string] };
+  dependencies?: { [name: string]: string };
 };
 
 export type StarterFile = {
@@ -12,15 +12,15 @@ export type StarterFile = {
 }
 
 export type Starter = {
-  dir: string;
+  path: string;
   group: string;
-  title: string;
-  description?: string;
-  tags?: string[];
-  defaultDir?: string;
-  mainFile?: string;
-  preview?: StarterPreviewConfig;
-  files?: StarterFile[];
+  name: string;
+  config?: {
+    description?: string;
+    defaultDir?: string;
+    mainFile?: string;
+    preview?: StarterPreviewConfig;
+  };
 };
 
 export type StarterGroupLookup = {

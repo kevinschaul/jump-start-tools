@@ -21,14 +21,14 @@ export default function StarterPreview({
   const [hasPreviewRendered, setHasPreviewRendered] = useState(false);
 
   // Only render a preview if the starter has a preview entry
-  const renderPreview = !!starter.preview;
-  const previewConfig = starter.preview;
+  const renderPreview = !!starter.config?.preview;
+  const previewConfig = starter.config?.preview;
 
   if (files && files.length) {
     // Figure out which file to activate in the editor by default. It can be
     // specified in the jump-start.yaml, otherwise it defaults to the first file.
     const mainFile =
-      files.find((d) => d.path === starter.mainFile)?.path || files[0].path;
+      files.find((d) => d.path === starter.config?.mainFile)?.path || files[0].path;
 
     const filesForSandpack = files.reduce((p, v) => {
       // Rewrite files into ./starter directory to avoid conflicts with
