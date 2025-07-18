@@ -1,5 +1,5 @@
-use crate::config::resolve_instance_path;
 use crate::Config;
+use crate::config::resolve_instance_path;
 use crate::starter::{LocalStarter, get_starter_command, get_starter_files, parse_starters};
 use anyhow::{Context, Result};
 use handlebars::Handlebars;
@@ -11,6 +11,7 @@ use std::process::{Command, Stdio};
 use std::thread;
 
 // Template files included at compile-time
+const PACKAGE_JSON: &str = include_str!("../templates/storybook/package.json");
 const MAIN_TS: &str = include_str!("../templates/storybook/main.ts");
 const PREVIEW_TS: &str = include_str!("../templates/storybook/preview.ts");
 const STARTER_PREVIEW_TSX: &str = include_str!("../templates/storybook/StarterPreview.tsx");
@@ -20,13 +21,10 @@ pub fn dev(config: Config, instance_path: Option<&str>, port: u16) -> Result<()>
     let path = resolve_instance_path(&config, instance_path);
     println!("Using instance at {:?}", path);
 
-    // Generate storybook config
+    install_node_deps(&path)?;
     generate_config(&path)?;
-
-    // Generate storybook files initially
     generate_stories(&path)?;
 
-    // Start the storybook server
     println!("Starting Storybook development server on port {}...", port);
 
     // Start storybook in a separate thread
@@ -70,13 +68,10 @@ pub fn prod(config: Config, instance_path: Option<&str>, output: String) -> Resu
     let path = resolve_instance_path(&config, instance_path);
     println!("Using instance at {:?}", path);
 
-    // Generate storybook config
+    install_node_deps(&path)?;
     generate_config(&path)?;
-
-    // Generate storybook files
     generate_stories(&path)?;
 
-    // Build storybook for production
     println!("Building Storybook for production to {}", output);
 
     let output_arg = format!("--output-dir={}", output);
@@ -135,6 +130,31 @@ pub fn generate_stories(instance_dir: &Path) -> Result<()> {
         "Successfully generated Storybook files at: {}",
         stories_dir.display()
     );
+    Ok(())
+}
+
+/// Creates package.json and installs Storybook dependencies
+fn install_node_deps(instance_dir: &Path) -> Result<()> {
+    let package_json_path = instance_dir.join("package.json");
+
+    fs::write(package_json_path, PACKAGE_JSON).context("Failed to create package.json file")?;
+
+    println!("Running `npm install` in {}", instance_dir.display());
+
+    let status = Command::new("npm")
+        .arg("install")
+        .current_dir(instance_dir)
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()
+        .context("Failed to execute `npm install`")?;
+
+    if !status.success() {
+        anyhow::bail!("`npm install` failed with status: {}", status);
+    }
+
+    println!("npm install completed successfully.");
+
     Ok(())
 }
 
