@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "devDependencies": {
+    "storybook": "8",
+    "@storybook/react": "8",
+    "@storybook/react-vite": "8",
+    "@codesandbox/sandpack-react": "2",
+    "react": "18"
+  }
+}
