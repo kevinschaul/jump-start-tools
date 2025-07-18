@@ -54,6 +54,7 @@ public/screenshots
 
 storybook-static
 
+.claude
 .aider*
 nvim-debug.log
 

@@ -9,6 +9,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::thread;
+use tempfile::TempDir;
 
 // Template files included at compile-time
 const PACKAGE_JSON: &str = include_str!("../templates/storybook/package.json");
@@ -18,22 +19,21 @@ const STARTER_PREVIEW_TSX: &str = include_str!("../templates/storybook/StarterPr
 const TYPES_TSX: &str = include_str!("../templates/storybook/types.tsx");
 
 pub fn dev(config: Config, instance_path: Option<&str>, port: u16) -> Result<()> {
-    let path = resolve_instance_path(&config, instance_path);
-    println!("Using instance at {:?}", path);
+    let instance_path = resolve_instance_path(&config, instance_path);
+    println!("Using instance at {:?}", instance_path);
 
-    install_node_deps(&path)?;
-    generate_config(&path)?;
-    generate_stories(&path)?;
+    // Create temporary directory for Storybook
+    let temp_dir = TempDir::new().context("Failed to create temporary directory")?;
+    let temp_path = temp_dir.path();
+    setup_storybook_environment(&temp_path, &instance_path)?;
 
     println!("Starting Storybook development server on port {}...", port);
-
-    // Start storybook in a separate thread
-    let storybook_path = path.clone();
+    let storybook_path = temp_path.to_path_buf();
     let port_str = port.to_string();
+    // Start storybook in a separate thread
     let storybook_thread = thread::spawn(move || {
-        // The storybook command should be run in the instance directory, not the .storybook dir
         let mut cmd = Command::new("npx");
-        cmd.arg("storybook@8")
+        cmd.arg("storybook")
             .arg("dev")
             .arg("-p")
             .arg(port_str)
@@ -61,25 +61,30 @@ pub fn dev(config: Config, instance_path: Option<&str>, port: u16) -> Result<()>
         .join()
         .map_err(|e| anyhow::anyhow!("Storybook thread panicked: {:?}", e))?;
 
+    // temp_dir will be automatically cleaned up when it goes out of scope
     Ok(())
 }
 
 pub fn prod(config: Config, instance_path: Option<&str>, output: String) -> Result<()> {
-    let path = resolve_instance_path(&config, instance_path);
-    println!("Using instance at {:?}", path);
+    let instance_path = resolve_instance_path(&config, instance_path);
+    println!("Using instance at {:?}", instance_path);
 
-    install_node_deps(&path)?;
-    generate_config(&path)?;
-    generate_stories(&path)?;
+    // Create temporary directory for Storybook
+    let temp_dir = TempDir::new().context("Failed to create temporary directory")?;
+    let temp_path = temp_dir.path();
+    setup_storybook_environment(&temp_path, &instance_path)?;
 
-    println!("Building Storybook for production to {}", output);
-
-    let output_arg = format!("--output-dir={}", output);
+    // Make output path absolute relative to current working directory
+    let cwd = std::env::current_dir().context("Failed to get current working directory")?;
+    let output_path = cwd.join(&output);
+    
+    println!("Building Storybook for production to {}", output_path.display());
+    let output_arg = format!("--output-dir={}", output_path.display());
     let mut cmd = Command::new("npx");
-    cmd.arg("storybook@8")
+    cmd.arg("storybook")
         .arg("build")
         .arg(output_arg)
-        .current_dir(&path)
+        .current_dir(&temp_path)
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit());
 
@@ -91,6 +96,56 @@ pub fn prod(config: Config, instance_path: Option<&str>, output: String) -> Resu
     } else {
         anyhow::bail!("Storybook build failed with status: {}", status)
     }
+}
+
+/// Sets up the complete Storybook environment in a temporary directory
+/// This includes installing dependencies, generating config, and creating stories
+fn setup_storybook_environment(temp_dir: &Path, instance_dir: &Path) -> Result<()> {
+    println!("Setting up Storybook in temporary directory: {:?}", temp_dir);
+    install_node_deps(temp_dir)?;
+    generate_config(temp_dir)?;
+    generate_stories_in_temp(temp_dir, instance_dir)?;
+    Ok(())
+}
+
+/// Generates stories in the temporary directory by reading starters from the instance directory
+fn generate_stories_in_temp(temp_dir: &Path, instance_dir: &Path) -> Result<()> {
+    let stories_dir = temp_dir.join(".storybook/stories");
+
+    // Clean existing stories directory (shouldn't exist in temp, but just in case)
+    if stories_dir.exists() {
+        fs::remove_dir_all(&stories_dir).context("Failed to clean existing stories directory")?;
+    }
+
+    // Create stories directory
+    create_dir_all(&stories_dir).context("Failed to create storybook stories directory")?;
+
+    // Parse starters from the instance directory (not temp_dir)
+    let grouped_starters = parse_starters(instance_dir)?;
+
+    // Initialize Handlebars for templating
+    let mut handlebars = Handlebars::new();
+    handlebars.register_escape_fn(handlebars::no_escape); // Don't escape MDX content
+
+    // Generate the overview page
+    generate_overview_page(instance_dir, &stories_dir, &mut handlebars)?;
+
+    // Generate stories for each starter
+    for (group, starters) in grouped_starters {
+        let group_dir = stories_dir.join(&group);
+        create_dir_all(&group_dir)
+            .with_context(|| format!("Failed to create directory for group: {}", group))?;
+
+        for starter in starters {
+            generate_starter_story(&starter, &group_dir, &mut handlebars, instance_dir)?;
+        }
+    }
+
+    println!(
+        "Successfully generated Storybook files at: {}",
+        stories_dir.display()
+    );
+    Ok(())
 }
 
 pub fn generate_stories(instance_dir: &Path) -> Result<()> {
