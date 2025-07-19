@@ -2,7 +2,7 @@
 name = "jump-start"
 description = "The CLI for jump-start: A shortcut to your favorite code"
 readme = "../README.md"
-version = "0.1.1-alpha.8"
+version = "0.2.0"
 edition = "2024"
 authors = ["Kevin Schaul <kevin.schaul@gmail.com>"]
 license = "MIT"
