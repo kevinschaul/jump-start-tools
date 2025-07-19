@@ -1,47 +1,52 @@
 # jump-start-tools
 
-The tools for
-[jump-start](https://github.com/kevinschaul/jump-start-template):
-A shortcut to your favorite code.
+CLI tool for the [jump-start template system](https://github.com/kevinschaul/jump-start-template): A shortcut to your favorite code.
 
-This repo contains the `jump-start` CLI.
-
-To set up your own jump-start instance, navigate to
-[jump-start-template](https://github.com/kevinschaul/jump-start-template)
-instead!
+**New to jump-start?** Start with the [jump-start-template repository](https://github.com/kevinschaul/jump-start-template) to understand the system and set up your first template collection.
 
 ## Installation
 
-Ensure you have Rust and Cargo installed.
-
-Install the `jump-start` CLI:
-
-```
-cargo install --path cli
-```
-
-Alternatively, once published to crates.io:
-
-```
+```bash
 cargo install jump-start
+jump-start --help
 ```
 
 ## Configuration
 
-Set up your jump-start instances:
-
-```
+```bash
 jump-start config
 ```
 
-Running this prints the path to your `config.json`. Edit it to add instances, for example:
+This prints the path to your `config.json` file. Edit it to add your template instances:
+
+### Single Instance
 
 ```json
 {
   "instances": [
     {
-      "path": "/home/kevin/dev/jump-start/",
-      "name": "kevinschaul"
+      "name": "my-templates",
+      "path": "/home/user/my-jump-start-templates",
+      "default": true
+    }
+  ]
+}
+```
+
+### Multiple Instances
+
+```json
+{
+  "instances": [
+    {
+      "name": "work",
+      "path": "/home/user/work-templates",
+      "default": true
+    },
+    {
+      "name": "personal",
+      "path": "/home/user/personal-templates",
+      "default": false
     }
   ]
 }
@@ -49,78 +54,81 @@ Running this prints the path to your `config.json`. Edit it to add instances, fo
 
 ## Usage
 
-### `jump-start config`
+### Common Workflows
 
-Print the path to your jump-start config file:
+#### Local templates
 
+```bash
+# Use a specific template
+jump-start use frontend/react-app
+
+# Use with custom output directory
+jump-start use frontend/react-app --out my-new-project
+
+# Search for templates
+jump-start find react
 ```
-jump-start config
+
+#### Remote templates
+
+```bash
+# Use template from GitHub repository
+jump-start use @kevinschaul/react-d3/LineChart
 ```
 
-### `jump-start find`
+### Command Reference
 
-Search installed starters by name or content:
-
-```
-jump-start find [--json] <search-term>
-```
-
-Options:
-  --json         Output results as JSON
-  -h, --help     Display help
-
-### `jump-start use`
+#### `jump-start use`
 
 Copy a starter to your project:
 
-```
+```bash
 jump-start use [--out <dir>] <starter-identifier>
 ```
 
-Arguments:
-  <starter-identifier>  Specify with `<group>/<starter>` or `<instance>/<group>/<starter>`
+#### `jump-start config`
 
-Options:
-  --out <dir>     Output directory (defaults to starter’s default)
-  -h, --help      Display help
+Show config file path:
 
-### `jump-start storybook dev`
-
-Start the Storybook development server for your jump-start instance:
-
-```
-jump-start storybook dev [--instance-path <path>] [--port <port>]
+```bash
+jump-start config
 ```
 
-Options:
-  --instance-path <path>   Specify a custom instance path (overrides config)
-  -p, --port <port>        Port to run Storybook on (default: 6006)
-  -h, --help               Display help
+#### `jump-start storybook`
 
-### `jump-start storybook prod`
+Preview your templates with an integrated Storybook interface:
 
-Build Storybook for production:
+##### Development Server
 
-```
-jump-start storybook prod [--instance-path <path>] [--output <dir>]
+```bash
+jump-start storybook dev [--port <port>]
 ```
 
-Options:
-  --instance-path <path>   Specify a custom instance path (overrides config)
-  -o, --output <dir>       Output directory (default: storybook-static)
-  -h, --help               Display help
+Opens at `http://localhost:6006` with live previews of all your templates.
 
-### `jump-start update-readme`
+##### Production Build
 
-Regenerate the `README.md` in your jump-start instance:
-
+```bash
+jump-start storybook prod [--output <dir>]
 ```
+
+Generates static Storybook files for deployment.
+
+#### `jump-start find`
+
+Search starters by name or content:
+
+```bash
+jump-start find [--json] <search-term>
+```
+
+#### `jump-start update-readme`
+
+Regenerate the README.md in your instance:
+
+```bash
 jump-start update-readme [--instance-path <path>]
 ```
-
-Options:
-  --instance-path <path>   Specify a custom instance path (overrides config)
-  -h, --help               Display help
 
 ## Neovim plugin
 
@@ -149,24 +157,21 @@ But you problably want to set up your own mappings. Here is mine:
 
 ## Development
 
-### CLI
+Build and test:
 
-Build and test the Rust CLI:
-
-```
-cargo build
-cargo test
+```bash
+make build
+make test
 ```
 
 Install locally:
 
-```
+```bash
 cargo install --path cli
 ```
 
-Publish to crates.io:
+Release a new version:
 
+```bash
+make release
 ```
-cargo publish -p jump-start
-```
-
