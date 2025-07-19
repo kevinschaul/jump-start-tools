@@ -2,6 +2,8 @@
 
 ## [0.2.0] - 2025-07-19
 
+## [0.2.1] - 2025-07-19
+
 ## Unreleased
 
 - Add `jump-start` command-line interface, replacing degit and adding subcommands for using, finding and previewing starters
