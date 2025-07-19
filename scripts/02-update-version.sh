@@ -25,7 +25,7 @@ if [[ "$VERSION" != *"alpha"* && "$VERSION" != *"beta"* && "$VERSION" != *"rc"* 
     info "Updating CHANGELOG.md for stable release..."
     # Update unreleased section with version and date
     DATE=$(date +%Y-%m-%d)
-    sed -i.bak "s/## Unreleased/## [$VERSION] - $DATE\n\n## Unreleased/" CHANGELOG.md
+    sed -i.bak "s/## Unreleased/## $VERSION ($DATE)\n\n## Unreleased/" CHANGELOG.md
     rm CHANGELOG.md.bak
     success "CHANGELOG.md updated with version $VERSION"
 else
