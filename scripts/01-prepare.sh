@@ -35,18 +35,18 @@ info "New version will be: $VERSION"
 # Check if there are unreleased changes in CHANGELOG.md
 info "Checking for unreleased changes in CHANGELOG.md..."
 
-if ! grep -q "## \[Unreleased\]" CHANGELOG.md; then
-    error "No [Unreleased] section found in CHANGELOG.md. Please add your changes there first."
+if ! grep -q "## Unreleased" CHANGELOG.md; then
+    error "No Unreleased section found in CHANGELOG.md. Please add your changes there first."
 fi
 
 # Check if there are actual changes (not just the placeholder)
-UNRELEASED_CONTENT=$(awk '/## \[Unreleased\]/{flag=1; next} /^## /{flag=0} flag' CHANGELOG.md | grep -v "^\s*$" | grep -v "Add new stuff here")
+UNRELEASED_CONTENT=$(awk '/## Unreleased/{flag=1; next} /^## /{flag=0} flag' CHANGELOG.md | grep -v "^\s*$" | grep -v "Add new stuff here")
 
 if [ -z "$UNRELEASED_CONTENT" ]; then
-    warn "No changes found in [Unreleased] section."
-    echo "Please add your changes to the [Unreleased] section in CHANGELOG.md"
+    warn "No changes found in Unreleased section."
+    echo "Please add your changes to the Unreleased section in CHANGELOG.md"
     echo "Current unreleased section:"
-    awk '/## \[Unreleased\]/{flag=1} /^## \[/{if(flag && !/Unreleased/) exit} flag' CHANGELOG.md
+    awk '/## Unreleased/{flag=1} /^## /{if(flag && !/Unreleased/) exit} flag' CHANGELOG.md
     echo
     read -p "Continue anyway? (y/N): " -n 1 -r
     echo
