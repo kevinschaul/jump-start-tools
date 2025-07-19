@@ -2,7 +2,7 @@
 # Step 5: Publish to crates.io and create GitHub release
 
 set -e
-source "$(dirname "$0")/../lib/colors.sh"
+source "$(dirname "$0")/utils.sh"
 
 info "=== STEP 5: PUBLISH ==="
 
@@ -18,7 +18,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     if cargo publish -p jump-start; then
         success "Published to crates.io!"
     else
-        error "Failed to publish to crates.io. You can retry this step later with: scripts/release-steps/05-publish.sh"
+        error "Failed to publish to crates.io. You can retry this step later with: scripts/05-publish.sh"
     fi
 else
     warn "Skipped crates.io publishing. To publish later, run:"

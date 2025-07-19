@@ -2,7 +2,7 @@
 # Step 4: Commit changes and create git tag
 
 set -e
-source "$(dirname "$0")/../lib/colors.sh"
+source "$(dirname "$0")/utils.sh"
 
 VERSION="$1"
 if [ -z "$VERSION" ]; then
@@ -46,4 +46,4 @@ success "Tag created and pushed"
 
 success "✓ Git operations complete"
 echo
-info "Next step: scripts/release-steps/05-publish.sh"
+info "Next step: 05-publish.sh"

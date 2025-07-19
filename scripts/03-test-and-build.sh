@@ -2,7 +2,7 @@
 # Step 3: Run tests and build
 
 set -e
-source "$(dirname "$0")/../lib/colors.sh"
+source "$(dirname "$0")/utils.sh"
 
 info "=== STEP 3: TEST AND BUILD ==="
 
@@ -24,4 +24,4 @@ fi
 
 success "✓ Tests and build complete"
 echo
-info "Next step: scripts/release-steps/04-commit-and-tag.sh <version>"
+info "Next step: 04-commit-and-tag.sh <version>"

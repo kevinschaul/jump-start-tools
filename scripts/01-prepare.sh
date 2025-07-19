@@ -2,7 +2,7 @@
 # Step 1: Prepare release - validate and show what will be released
 
 set -e
-source "$(dirname "$0")/../lib/colors.sh"
+source "$(dirname "$0")/utils.sh"
 
 VERSION="$1"
 if [ -z "$VERSION" ]; then
@@ -63,7 +63,7 @@ echo
 success "✓ Preparation complete - ready for release $VERSION"
 echo
 info "Next steps:"
-echo "  scripts/release-steps/02-update-version.sh $VERSION"
-echo "  scripts/release-steps/03-test-and-build.sh"
-echo "  scripts/release-steps/04-commit-and-tag.sh $VERSION"
-echo "  scripts/release-steps/05-publish.sh"
+echo "  scripts/02-update-version.sh $VERSION"
+echo "  scripts/03-test-and-build.sh"
+echo "  scripts/04-commit-and-tag.sh $VERSION"
+echo "  scripts/05-publish.sh"

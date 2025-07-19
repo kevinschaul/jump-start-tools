@@ -2,7 +2,7 @@
 # Step 2: Update version numbers and changelog
 
 set -e
-source "$(dirname "$0")/../lib/colors.sh"
+source "$(dirname "$0")/utils.sh"
 
 VERSION="$1"
 if [ -z "$VERSION" ]; then
@@ -20,12 +20,16 @@ sed -i.bak "s/version = \"$CURRENT_VERSION\"/version = \"$VERSION\"/" cli/Cargo.
 rm cli/Cargo.toml.bak
 success "Version updated in Cargo.toml"
 
-# Update CHANGELOG.md using the update script
-info "Updating CHANGELOG.md..."
-if "$(dirname "$0")/../update-changelog.sh" "$VERSION"; then
+# Update CHANGELOG.md for non-alpha releases only
+if [[ "$VERSION" != *"alpha"* && "$VERSION" != *"beta"* && "$VERSION" != *"rc"* ]]; then
+    info "Updating CHANGELOG.md for stable release..."
+    # Update unreleased section with version and date
+    DATE=$(date +%Y-%m-%d)
+    sed -i.bak "s/## Unreleased/## [$VERSION] - $DATE\n\n## Unreleased/" CHANGELOG.md
+    rm CHANGELOG.md.bak
     success "CHANGELOG.md updated with version $VERSION"
 else
-    error "Failed to update CHANGELOG.md"
+    info "Skipping CHANGELOG.md update for pre-release version"
 fi
 
 info "Files updated:"
@@ -34,4 +38,4 @@ echo "  - CHANGELOG.md"
 echo
 success "✓ Version update complete"
 echo
-info "Next step: scripts/release-steps/03-test-and-build.sh"
+info "Next step: 03-test-and-build.sh"
