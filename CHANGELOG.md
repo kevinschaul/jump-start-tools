@@ -16,6 +16,7 @@
 - Switch tools code to Rust  
 - Add beta neovim plugin
 - Simplify release process (I hope!)
+- Added UPGRADE.md for upgrade instructions
 
 ## 0.1.6 (2024-06-28)
 

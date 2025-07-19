@@ -4,6 +4,8 @@ CLI tool for the [jump-start template system](https://github.com/kevinschaul/jum
 
 **New to jump-start?** Start with the [jump-start-template repository](https://github.com/kevinschaul/jump-start-template) to understand the system and set up your first template collection.
 
+**Coming from 0.1.X?** See how to upgrade in [UPGRADE.md](UPGRADE.md).
+
 ## Installation
 
 ```bash
