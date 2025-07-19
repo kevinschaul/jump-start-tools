@@ -1,4 +1,18 @@
-## main
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+## [Unreleased]
+
+- Enhanced starter command generation to support remote GitHub starters (@username/repo/group/starter format)
+- Removed degit command generation functionality while maintaining compatibility
+- Added comprehensive release workflow with bash scripts and Makefile
+- Created changelog management system for PR-based updates
+
+## [0.1.1-alpha-7] - 2024-07-19
+
 - Update ws dependency to avoid DoS vulnerability
 
 ## [0.1.6](https://github.com/kevinschaul/jump-start-tools/compare/v0.1.5...v0.1.6) (2024-06-28)
