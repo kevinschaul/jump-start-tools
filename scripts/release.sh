@@ -80,4 +80,4 @@ if [ "$START_STEP" -le 5 ]; then
     echo
 fi
 
-success "🎉 Complete release process finished successfully!"
+success "Complete release process finished successfully!"

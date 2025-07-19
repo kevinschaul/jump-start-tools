@@ -60,7 +60,7 @@ info "Changes to be released:"
 echo "$UNRELEASED_CONTENT"
 echo
 
-success "✓ Preparation complete - ready for release $VERSION"
+success "Preparation complete - ready for release $VERSION"
 echo
 info "Next steps:"
 echo "  scripts/02-update-version.sh $VERSION"

@@ -22,6 +22,6 @@ else
     error "Build failed! Fix build errors before continuing."
 fi
 
-success "✓ Tests and build complete"
+success "Tests and build complete"
 echo
 info "Next step: 04-commit-and-tag.sh <version>"

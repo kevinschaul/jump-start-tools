@@ -36,6 +36,6 @@ info "Files updated:"
 echo "  - cli/Cargo.toml"
 echo "  - CHANGELOG.md"
 echo
-success "✓ Version update complete"
+success "Version update complete"
 echo
 info "Next step: 03-test-and-build.sh"

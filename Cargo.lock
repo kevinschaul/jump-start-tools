@@ -1017,7 +1017,7 @@ dependencies = [
 
 [[package]]
 name = "jump-start"
-version = "0.1.1-alpha-7"
+version = "0.1.1-alpha.8"
 dependencies = [
  "anyhow",
  "clap",

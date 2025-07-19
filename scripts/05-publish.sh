@@ -12,17 +12,10 @@ info "Publishing version: $VERSION"
 
 # Publish to crates.io
 info "Publishing to crates.io..."
-read -p "Publish to crates.io now? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    if cargo publish -p jump-start; then
-        success "Published to crates.io!"
-    else
-        error "Failed to publish to crates.io. You can retry this step later with: scripts/05-publish.sh"
-    fi
+if cargo publish -p jump-start; then
+    success "Published to crates.io!"
 else
-    warn "Skipped crates.io publishing. To publish later, run:"
-    echo "  cargo publish -p jump-start"
+    error "Failed to publish to crates.io. You can retry this step later with: scripts/05-publish.sh"
 fi
 
 # Create GitHub release (if gh CLI is available)
@@ -44,10 +37,10 @@ else
     echo "  https://github.com/$(git remote get-url origin | sed 's/.*github.com[:/]\([^.]*\).*/\1/')/releases/new?tag=v$VERSION"
 fi
 
-success "✓ Release v$VERSION complete! 🎉"
+success "Release v$VERSION complete!"
 echo
 info "Summary:"
 echo "  • Version: $VERSION"
 echo "  • Git tag: v$VERSION pushed"
-echo "  • Crates.io: $(if [[ $REPLY =~ ^[Yy]$ ]]; then echo "Published"; else echo "Skipped"; fi)"
+echo "  • Crates.io: Published"
 echo "  • GitHub release: $(if command -v gh >/dev/null 2>&1; then echo "Created"; else echo "Manual step needed"; fi)"

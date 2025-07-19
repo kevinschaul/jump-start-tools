@@ -13,7 +13,7 @@ info "=== STEP 4: COMMIT AND TAG ==="
 
 # Check what will be committed
 info "Files to be committed:"
-git diff --name-only HEAD
+git --no-pager diff --name-only HEAD
 
 if [[ -z $(git diff --name-only HEAD) ]]; then
     warn "No changes to commit"
@@ -21,14 +21,8 @@ else
     # Show the changes
     echo
     info "Changes to be committed:"
-    git diff --stat HEAD
+    git --no-pager diff --stat HEAD
     echo
-    
-    read -p "Commit these changes? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
 fi
 
 # Commit changes
@@ -44,6 +38,6 @@ git push origin main
 git push origin "v$VERSION"
 success "Tag created and pushed"
 
-success "✓ Git operations complete"
+success "Git operations complete"
 echo
 info "Next step: 05-publish.sh"
