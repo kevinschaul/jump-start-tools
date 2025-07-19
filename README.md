@@ -17,7 +17,7 @@ jump-start --help
 jump-start config
 ```
 
-This prints the path to your `config.json` file. Edit it to add your template instances:
+This prints the path to your `config.json` file. Edit it to add your starter instances:
 
 ### Single Instance
 
@@ -56,23 +56,23 @@ This prints the path to your `config.json` file. Edit it to add your template in
 
 ### Common Workflows
 
-#### Local templates
+#### Local starters
 
 ```bash
-# Use a specific template
+# Use a specific starter
 jump-start use frontend/react-app
 
 # Use with custom output directory
 jump-start use frontend/react-app --out my-new-project
 
-# Search for templates
+# Search through local starters
 jump-start find react
 ```
 
-#### Remote templates
+#### Remote starters
 
 ```bash
-# Use template from GitHub repository
+# Use starter from GitHub repository
 jump-start use @kevinschaul/react-d3/LineChart
 ```
 
@@ -82,7 +82,7 @@ jump-start use @kevinschaul/react-d3/LineChart
 
 <!--[[[cog
 import subprocess
-result = subprocess.run(['jump-start', 'use', '--help'], capture_output=True, text=True)
+result = subprocess.run(['cargo', 'run', '--', 'use', '--help'], capture_output=True, text=True)
 cog.out("```\n" + result.stdout.strip() + "\n```\n")
 ]]]-->
 ```
@@ -91,17 +91,15 @@ Use a starter
 Usage: jump-start use <STARTER_IDENTIFIER> [DEST]
 
 Arguments:
-  <STARTER_IDENTIFIER>
-          The starter to use.
-          
-          Local starters: group/starter-name (e.g., frontend/react-app) Remote starters: @username/repo/path (e.g., @kevinschaul/react-d3/LineChart) or @username/repo/group/path (e.g., @kevinschaul/jump-start/react-d3/LineChart)
-
-  [DEST]
-          Optional destination directory
+  <STARTER_IDENTIFIER>  The starter to use.
+                        For local starters: group/starter-name
+                            e.g. react-d3/LineChart
+                        For remote starters: @username/group/starter-name or @username/repo/group/starter-path
+                            e.g. @kevinschaul/react-d3/LineChart
+  [DEST]                Optional destination directory
 
 Options:
-  -h, --help
-          Print help (see a summary with '-h')
+  -h, --help  Print help
 ```
 <!--[[[end]]]-->
 
@@ -109,7 +107,7 @@ Options:
 
 <!--[[[cog
 import subprocess
-result = subprocess.run(['jump-start', 'config', '--help'], capture_output=True, text=True)
+result = subprocess.run(['cargo', 'run', '--', 'config', '--help'], capture_output=True, text=True)
 cog.out("```\n" + result.stdout.strip() + "\n```\n")
 ]]]-->
 ```
@@ -126,7 +124,7 @@ Options:
 
 <!--[[[cog
 import subprocess
-result = subprocess.run(['jump-start', 'storybook', '--help'], capture_output=True, text=True)
+result = subprocess.run(['cargo', 'run', '--', 'storybook', '--help'], capture_output=True, text=True)
 cog.out("```\n" + result.stdout.strip() + "\n```\n")
 ]]]-->
 ```
@@ -148,7 +146,7 @@ Options:
 
 <!--[[[cog
 import subprocess
-result = subprocess.run(['jump-start', 'storybook', 'dev', '--help'], capture_output=True, text=True)
+result = subprocess.run(['cargo', 'run', '--', 'storybook', 'dev', '--help'], capture_output=True, text=True)
 cog.out("```\n" + result.stdout.strip() + "\n```\n")
 ]]]-->
 ```
@@ -167,7 +165,7 @@ Options:
 
 <!--[[[cog
 import subprocess
-result = subprocess.run(['jump-start', 'storybook', 'prod', '--help'], capture_output=True, text=True)
+result = subprocess.run(['cargo', 'run', '--', 'storybook', 'prod', '--help'], capture_output=True, text=True)
 cog.out("```\n" + result.stdout.strip() + "\n```\n")
 ]]]-->
 ```
@@ -186,7 +184,7 @@ Options:
 
 <!--[[[cog
 import subprocess
-result = subprocess.run(['jump-start', 'find', '--help'], capture_output=True, text=True)
+result = subprocess.run(['cargo', 'run', '--', 'find', '--help'], capture_output=True, text=True)
 cog.out("```\n" + result.stdout.strip() + "\n```\n")
 ]]]-->
 ```
@@ -212,7 +210,7 @@ Options:
 
 <!--[[[cog
 import subprocess
-result = subprocess.run(['jump-start', 'update-readme', '--help'], capture_output=True, text=True)
+result = subprocess.run(['cargo', 'run', '--', 'update-readme', '--help'], capture_output=True, text=True)
 cog.out("```\n" + result.stdout.strip() + "\n```\n")
 ]]]-->
 ```

@@ -7,12 +7,9 @@ help:
 test:
 	cargo test
 
-build:
-	cargo build
-
-release:
-	@echo "Current version: $$(grep '^version = ' cli/Cargo.toml | sed 's/.*"\(.*\)".*/\1/')"; \
-	read -p "Version: " v && ./scripts/release.sh $$v
-
 update-readme:
 	uvx --from cogapp cog -r README.md
+
+release: update-readme
+	@echo "Current version: $$(grep '^version = ' cli/Cargo.toml | sed 's/.*"\(.*\)".*/\1/')"; \
+	read -p "Version: " v && ./scripts/release.sh $$v
