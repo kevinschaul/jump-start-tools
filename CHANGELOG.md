@@ -1,11 +1,15 @@
 # Changelog
 
-## 0.2.1 (2025-07-19)
-
 ## Unreleased
 
+## 0.2.1 (2025-07-19)
+
+- Tweak release scripts
+
+## 0.2.0 (2025-07-19)
+
 - Add `jump-start` command-line interface, replacing degit and adding subcommands for using, finding and previewing starters
-- Switch tools code to Rust
+- Switch tools code to Rust  
 - Add beta neovim plugin
 - Simplify release process (I hope!)
 

@@ -23,10 +23,28 @@ success "Version updated in Cargo.toml"
 # Update CHANGELOG.md for non-alpha releases only
 if [[ "$VERSION" != *"alpha"* && "$VERSION" != *"beta"* && "$VERSION" != *"rc"* ]]; then
     info "Updating CHANGELOG.md for stable release..."
-    # Update unreleased section with version and date
+    # Update unreleased section with version and date, moving content to new version
     DATE=$(date +%Y-%m-%d)
-    sed -i.bak "s/## Unreleased/## $VERSION ($DATE)\n\n## Unreleased/" CHANGELOG.md
-    rm CHANGELOG.md.bak
+    
+    # Create a temporary file with the new structure
+    awk -v version="$VERSION" -v date="$DATE" '
+    /^## Unreleased/ {
+        print "## Unreleased"
+        print ""
+        print "## " version " (" date ")"
+        next
+    }
+    /^## / && found_unreleased {
+        found_unreleased = 0
+    }
+    /^## Unreleased/ {
+        found_unreleased = 1
+        next
+    }
+    { print }
+    ' CHANGELOG.md > CHANGELOG.md.tmp
+    
+    mv CHANGELOG.md.tmp CHANGELOG.md
     success "CHANGELOG.md updated with version $VERSION"
 else
     info "Skipping CHANGELOG.md update for pre-release version"
