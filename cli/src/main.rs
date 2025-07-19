@@ -26,13 +26,21 @@ enum Commands {
     /// Use a starter
     #[command(arg_required_else_help = true)]
     Use {
+        /// The starter to use.
+        /// For local starters: group/starter-name
+        ///     e.g. react-d3/LineChart
+        /// For remote starters: @username/group/starter-name or @username/repo/group/starter-path
+        ///     e.g. @kevinschaul/react-d3/LineChart
+        #[clap(verbatim_doc_comment)]
         starter_identifier: String,
+        /// Optional destination directory
         dest: Option<String>,
     },
 
     /// Find a starter
     #[command(arg_required_else_help = true)]
     Find {
+        /// Search term to find starters (searches names and content)
         search_term: String,
         /// Output results as JSON
         #[arg(long)]

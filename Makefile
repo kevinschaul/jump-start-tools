@@ -1,4 +1,4 @@
-.PHONY: help test build release
+.PHONY: help test build release update-readme
 
 # Show available commands
 help:
@@ -13,3 +13,6 @@ build:
 release:
 	@echo "Current version: $$(grep '^version = ' cli/Cargo.toml | sed 's/.*"\(.*\)".*/\1/')"; \
 	read -p "Version: " v && ./scripts/release.sh $$v
+
+update-readme:
+	uvx --from cogapp cog -r README.md

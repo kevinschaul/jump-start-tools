@@ -80,55 +80,151 @@ jump-start use @kevinschaul/react-d3/LineChart
 
 #### `jump-start use`
 
-Copy a starter to your project:
-
-```bash
-jump-start use [--out <dir>] <starter-identifier>
+<!--[[[cog
+import subprocess
+result = subprocess.run(['jump-start', 'use', '--help'], capture_output=True, text=True)
+cog.out("```\n" + result.stdout.strip() + "\n```\n")
+]]]-->
 ```
+Use a starter
+
+Usage: jump-start use <STARTER_IDENTIFIER> [DEST]
+
+Arguments:
+  <STARTER_IDENTIFIER>
+          The starter to use.
+          
+          Local starters: group/starter-name (e.g., frontend/react-app) Remote starters: @username/repo/path (e.g., @kevinschaul/react-d3/LineChart) or @username/repo/group/path (e.g., @kevinschaul/jump-start/react-d3/LineChart)
+
+  [DEST]
+          Optional destination directory
+
+Options:
+  -h, --help
+          Print help (see a summary with '-h')
+```
+<!--[[[end]]]-->
 
 #### `jump-start config`
 
-Show config file path:
-
-```bash
-jump-start config
+<!--[[[cog
+import subprocess
+result = subprocess.run(['jump-start', 'config', '--help'], capture_output=True, text=True)
+cog.out("```\n" + result.stdout.strip() + "\n```\n")
+]]]-->
 ```
+Print path to config file
+
+Usage: jump-start config
+
+Options:
+  -h, --help  Print help
+```
+<!--[[[end]]]-->
 
 #### `jump-start storybook`
 
-Preview your templates with an integrated Storybook interface:
+<!--[[[cog
+import subprocess
+result = subprocess.run(['jump-start', 'storybook', '--help'], capture_output=True, text=True)
+cog.out("```\n" + result.stdout.strip() + "\n```\n")
+]]]-->
+```
+Storybook commands
+
+Usage: jump-start storybook <COMMAND>
+
+Commands:
+  dev   Start Storybook development server
+  prod  Build Storybook for production
+  help  Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help  Print help
+```
+<!--[[[end]]]-->
 
 ##### Development Server
 
-```bash
-jump-start storybook dev [--port <port>]
+<!--[[[cog
+import subprocess
+result = subprocess.run(['jump-start', 'storybook', 'dev', '--help'], capture_output=True, text=True)
+cog.out("```\n" + result.stdout.strip() + "\n```\n")
+]]]-->
 ```
+Start Storybook development server
 
-Opens at `http://localhost:6006` with live previews of all your templates.
+Usage: jump-start storybook dev [OPTIONS]
+
+Options:
+      --instance-path <INSTANCE_PATH>  Path to the instance to operate on
+  -p, --port <PORT>                    Port to run Storybook on [default: 6006]
+  -h, --help                           Print help
+```
+<!--[[[end]]]-->
 
 ##### Production Build
 
-```bash
-jump-start storybook prod [--output <dir>]
+<!--[[[cog
+import subprocess
+result = subprocess.run(['jump-start', 'storybook', 'prod', '--help'], capture_output=True, text=True)
+cog.out("```\n" + result.stdout.strip() + "\n```\n")
+]]]-->
 ```
+Build Storybook for production
 
-Generates static Storybook files for deployment.
+Usage: jump-start storybook prod [OPTIONS]
+
+Options:
+      --instance-path <INSTANCE_PATH>  Path to the instance to operate on
+  -o, --output <OUTPUT>                Output directory [default: storybook-static]
+  -h, --help                           Print help
+```
+<!--[[[end]]]-->
 
 #### `jump-start find`
 
-Search starters by name or content:
-
-```bash
-jump-start find [--json] <search-term>
+<!--[[[cog
+import subprocess
+result = subprocess.run(['jump-start', 'find', '--help'], capture_output=True, text=True)
+cog.out("```\n" + result.stdout.strip() + "\n```\n")
+]]]-->
 ```
+Find a starter
+
+Usage: jump-start find [OPTIONS] <SEARCH_TERM>
+
+Arguments:
+  <SEARCH_TERM>  Search term to find starters (searches names and content)
+
+Options:
+      --json  Output results as JSON
+  -h, --help  Print help
+```
+<!--[[[end]]]-->
+
+**Search Term Examples:**
+- `react` - Find all starters containing "react"
+- `frontend` - Find starters in the frontend group
+- `python` - Find Python-related templates
 
 #### `jump-start update-readme`
 
-Regenerate the README.md in your instance:
-
-```bash
-jump-start update-readme [--instance-path <path>]
+<!--[[[cog
+import subprocess
+result = subprocess.run(['jump-start', 'update-readme', '--help'], capture_output=True, text=True)
+cog.out("```\n" + result.stdout.strip() + "\n```\n")
+]]]-->
 ```
+Update readme
+
+Usage: jump-start update-readme [OPTIONS]
+
+Options:
+      --instance-path <INSTANCE_PATH>  Path to the instance to operate on
+  -h, --help                           Print help
+```
+<!--[[[end]]]-->
 
 ## Neovim plugin
 
