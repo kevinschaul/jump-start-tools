@@ -296,8 +296,16 @@ fn visit_dirs(
 
 pub fn get_starter_command(
     starter: &LocalStarter,
-    _github_username: &str,
-    _github_repo: &str,
+    github_username: &str,
+    github_repo: &str,
 ) -> String {
-    format!("jump-start use {}/{}", starter.group, starter.name)
+    if !github_username.is_empty() && !github_repo.is_empty() {
+        if github_repo == "jump-start" {
+            format!("jump-start use @{}/{}/{}", github_username, starter.group, starter.name)
+        } else {
+            format!("jump-start use @{}/{}/{}/{}", github_username, github_repo, starter.group, starter.name)
+        }
+    } else {
+        format!("jump-start use {}/{}", starter.group, starter.name)
+    }
 }

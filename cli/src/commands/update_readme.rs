@@ -210,7 +210,13 @@ mod tests {
         groups.insert("react".to_string(), vec![starter.clone()]);
 
         let jump_start_command = get_starter_command(&starter, "testuser", "testrepo");
-        assert_eq!(jump_start_command, "jump-start use react/app");
+        assert_eq!(jump_start_command, "jump-start use @testuser/testrepo/react/app");
+
+        let default_repo_command = get_starter_command(&starter, "testuser", "jump-start");
+        assert_eq!(default_repo_command, "jump-start use @testuser/react/app");
+
+        let local_command = get_starter_command(&starter, "", "");
+        assert_eq!(local_command, "jump-start use react/app");
     }
 
     #[test]
