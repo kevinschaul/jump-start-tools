@@ -27,7 +27,7 @@ fi
 
 # Commit changes
 info "Committing changes..."
-git add cli/Cargo.toml CHANGELOG.md
+git add .
 git commit -m "release: v$VERSION" || warn "Nothing to commit"
 success "Changes committed"
 
