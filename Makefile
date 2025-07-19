@@ -1,4 +1,4 @@
-.PHONY: help test build release update-readme
+.PHONY: help test build install release update-readme
 
 # Show available commands
 help:
@@ -6,6 +6,9 @@ help:
 
 test:
 	cargo test
+
+install:
+	cargo install --path cli
 
 update-readme:
 	uvx --from cogapp cog -r README.md
