@@ -36,7 +36,6 @@ fn generate_readme_section(groups: &LocalStarterGroupLookup) -> String {
 
             let github_username = env::var("GITHUB_USERNAME").unwrap_or_default();
             let github_repo = env::var("GITHUB_REPO").unwrap_or_default();
-            let degit_mode = env::var("DEGIT_MODE").unwrap_or_default();
 
             output.push(format!(
                 "
@@ -44,7 +43,7 @@ fn generate_readme_section(groups: &LocalStarterGroupLookup) -> String {
 {}
 ```
 ",
-                get_starter_command(data, &github_username, &github_repo, &degit_mode)
+                get_starter_command(data, &github_username, &github_repo)
             ));
 
             if let Some(config) = &data.config {
@@ -203,18 +202,14 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_readme_section_with_degit_command() {
+    fn test_generate_readme_section_with_command() {
         use crate::starter::get_starter_command;
 
         let mut groups = HashMap::new();
         let starter = create_test_starter("react", "app", Some("Test starter"));
         groups.insert("react".to_string(), vec![starter.clone()]);
 
-        // Test that get_starter_command works correctly with degit mode
-        let degit_command = get_starter_command(&starter, "testuser", "testrepo", "true");
-        assert_eq!(degit_command, "npx degit testuser/testrepo#react/app app");
-
-        let jump_start_command = get_starter_command(&starter, "testuser", "testrepo", "false");
+        let jump_start_command = get_starter_command(&starter, "testuser", "testrepo");
         assert_eq!(jump_start_command, "jump-start use react/app");
     }
 
@@ -226,10 +221,8 @@ mod tests {
 
         let result = generate_readme_section(&groups);
 
-        // With no DEGIT_MODE set (or set to something other than "true"),
-        // should use jump-start command
+        // Should use jump-start command
         assert!(result.contains("jump-start use react/app"));
-        assert!(!result.contains("npx degit"));
     }
 
     #[test]

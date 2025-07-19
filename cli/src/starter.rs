@@ -296,16 +296,8 @@ fn visit_dirs(
 
 pub fn get_starter_command(
     starter: &LocalStarter,
-    github_username: &str,
-    github_repo: &str,
-    degit_mode: &str,
+    _github_username: &str,
+    _github_repo: &str,
 ) -> String {
-    if degit_mode == "true" {
-        format!(
-            "npx degit {}/{}#{}/{} {}",
-            github_username, github_repo, starter.group, starter.name, starter.name
-        )
-    } else {
-        format!("jump-start use {}/{}", starter.group, starter.name)
-    }
+    format!("jump-start use {}/{}", starter.group, starter.name)
 }

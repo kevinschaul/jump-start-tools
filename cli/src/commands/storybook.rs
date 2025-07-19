@@ -383,10 +383,8 @@ import starter from './starter.json';
     let github_username =
         std::env::var("GITHUB_USERNAME").unwrap_or_else(|_| "username".to_string());
     let github_repo = std::env::var("GITHUB_REPO").unwrap_or_else(|_| "jump-start".to_string());
-    let degit_mode = std::env::var("DEGIT_MODE").unwrap_or_else(|_| "false".to_string());
-
     // Get starter command
-    let starter_command = get_starter_command(starter, &github_username, &github_repo, &degit_mode);
+    let starter_command = get_starter_command(starter, &github_username, &github_repo);
 
     // Render the template
     let template_data = json!({
