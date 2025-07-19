@@ -144,14 +144,20 @@ fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<()> 
     }
 }
 
-/// Recursively copy the directory `src` to `dest`
+/// Recursively copy the directory `src` to `dest`, excluding configuration files
 fn copy_dir_contents(src: &Path, dest: &Path) -> Result<()> {
     fs::create_dir_all(dest)?;
     for entry in fs::read_dir(src)? {
         let entry = entry?;
         let file_type = entry.file_type()?;
         let src_path = entry.path();
-        let dst_path = dest.join(entry.file_name());
+        let file_name = entry.file_name();
+        let dst_path = dest.join(&file_name);
+
+        // Skip configuration files
+        if file_name == "jump-start.yaml" || file_name == "degit.json" {
+            continue;
+        }
 
         if file_type.is_dir() {
             fs::create_dir_all(&dst_path)?;
@@ -419,12 +425,19 @@ mod tests {
         fs::create_dir_all(src_dir.join("nested"))?;
         fs::write(src_dir.join("file1.txt"), "test content 1")?;
         fs::write(src_dir.join("nested/file2.txt"), "test content 2")?;
+        // Add configuration files - these should be excluded
+        fs::write(src_dir.join("jump-start.yaml"), "name: test-starter\ndescription: Test")?;
+        fs::write(src_dir.join("degit.json"), "{\"action\": \"remove\"}")?;
 
         copy_dir_contents(&src_dir, &dest_dir)?;
 
         // Verify files were copied correctly
         assert!(dest_dir.join("file1.txt").exists());
         assert!(dest_dir.join("nested/file2.txt").exists());
+
+        // Verify configuration files were NOT copied
+        assert!(!dest_dir.join("jump-start.yaml").exists());
+        assert!(!dest_dir.join("degit.json").exists());
 
         // Check file contents
         let file1_content = fs::read_to_string(dest_dir.join("file1.txt"))?;
