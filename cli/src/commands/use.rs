@@ -146,8 +146,10 @@ fn extract_tar_subdir(tar_path: &Path, subdir: &str, dest: &Path) -> Result<()> 
 
 /// Recursively copy the directory `src` to `dest`, excluding configuration files
 fn copy_dir_contents(src: &Path, dest: &Path) -> Result<()> {
+    debug!("Copying {:?} to {:?}", src, dest);
     fs::create_dir_all(dest)?;
     for entry in fs::read_dir(src)? {
+        debug!("Copying {:?}", entry);
         let entry = entry?;
         let file_type = entry.file_type()?;
         let src_path = entry.path();
@@ -159,14 +161,33 @@ fn copy_dir_contents(src: &Path, dest: &Path) -> Result<()> {
             continue;
         }
 
-        if file_type.is_dir() {
+        if file_type.is_symlink() {
+            // Read the symlink target and recreate it
+            let target = fs::read_link(&src_path)?;
+            debug!("Creating symlink {:?} -> {:?}", dst_path, target);
+
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs as unix_fs;
+                unix_fs::symlink(&target, &dst_path)?;
+            }
+
+            #[cfg(windows)]
+            {
+                use std::os::windows::fs as windows_fs;
+                if target.is_dir() {
+                    windows_fs::symlink_dir(&target, &dst_path)?;
+                } else {
+                    windows_fs::symlink_file(&target, &dst_path)?;
+                }
+            }
+        } else if file_type.is_dir() {
             fs::create_dir_all(&dst_path)?;
             copy_dir_contents(&src_path, &dst_path)?;
         } else {
             fs::copy(&src_path, &dst_path)?;
         }
     }
-
     Ok(())
 }
 
@@ -426,7 +447,10 @@ mod tests {
         fs::write(src_dir.join("file1.txt"), "test content 1")?;
         fs::write(src_dir.join("nested/file2.txt"), "test content 2")?;
         // Add configuration files - these should be excluded
-        fs::write(src_dir.join("jump-start.yaml"), "name: test-starter\ndescription: Test")?;
+        fs::write(
+            src_dir.join("jump-start.yaml"),
+            "name: test-starter\ndescription: Test",
+        )?;
         fs::write(src_dir.join("degit.json"), "{\"action\": \"remove\"}")?;
 
         copy_dir_contents(&src_dir, &dest_dir)?;
