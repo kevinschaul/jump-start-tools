@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Handle symlinks in `use`
+
 ## 0.2.2 (2025-07-19)
 
 - Tweak release scripts
