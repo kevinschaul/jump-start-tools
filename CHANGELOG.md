@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.3 (2025-08-22)
+
 - Handle symlinks in `use`
 
 ## 0.2.2 (2025-07-19)
